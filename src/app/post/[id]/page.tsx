@@ -6,7 +6,11 @@ import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { PostGallery } from "@/features/posts/PostGallery";
 import { PostActions } from "@/features/posts/PostActions";
 import { getCurrentProfile, IntentResume } from "@/features/auth";
-import { getLikedByMe } from "@/features/engagement";
+import {
+  getLikedByMe,
+  listComments,
+  CommentSection,
+} from "@/features/engagement";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
@@ -87,7 +91,10 @@ export default async function PostDetailPage({ params }: Props) {
   }
 
   const signedIn = profile !== null;
-  const initialLiked = signedIn ? await getLikedByMe(post.id) : false;
+  const [initialLiked, initialComments] = await Promise.all([
+    signedIn ? getLikedByMe(post.id) : Promise.resolve(false),
+    listComments(post.id),
+  ]);
 
   return (
     <div className="min-h-full">
@@ -235,6 +242,17 @@ export default async function PostDetailPage({ params }: Props) {
                 View →
               </span>
             </Link>
+
+            <div className="border-t border-border pt-6">
+              <CommentSection
+                postId={post.id}
+                initialComments={initialComments}
+                initialCount={Math.max(post.commentCount, initialComments.length)}
+                signedIn={signedIn}
+                userId={profile?.id}
+                displayName={profile?.displayName}
+              />
+            </div>
           </div>
         </div>
       </main>
