@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
+import { MotionRoot } from "@/motion/MotionRoot";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -32,9 +33,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${plusJakarta.variable} ${geistMono.variable} h-full antialiased`}
+      // data-motion is set client-side by MotionProvider; default to full for SSR
+      data-motion="full"
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        {children}
+        <MotionRoot>{children}</MotionRoot>
       </body>
     </html>
   );
