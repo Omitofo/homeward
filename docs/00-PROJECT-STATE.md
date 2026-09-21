@@ -1,9 +1,9 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-21 (card carousel session)
+**Last updated:** 2026-09-21 (infinite scroll session)
 **Current phase:** Phase 2 — Explore (in progress)
-**Next task:** Infinite scroll on explore, filter sheet polish, feed motion (Flip)
-**Repo status:** Foundation + explore feed + post detail + shelter profile + card carousel.
+**Next task:** Filter sheet polish (mobile), feed motion (batch entry / Flip)
+**Repo status:** Foundation + explore (filters, cards, carousel, infinite scroll) + post detail + shelter profile.
 
 ## Phase overview
 | Phase | Name | Goal | Status |
@@ -24,21 +24,21 @@ Status legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 |----|------|--------|-------|
 | P0-01 … P0-06 | Foundation tasks | ✅ | Merged |
 | P0-02 / P0-07 | Husky + CI | 🟨 | Optional polish |
-| P2-01 | Filters schema (Zod) + URL state | ✅ | `src/features/filters/schema.ts` |
-| P2-02 | Feed grid + PostCard | ✅ | `/explore` with responsive grid |
-| P2-03 | Image carousel | ✅ | CardCarousel on feed + PostGallery on detail |
+| P2-01 | Filters schema (Zod) + URL state | ✅ | |
+| P2-02 | Feed grid + PostCard | ✅ | |
+| P2-03 | Image carousel | ✅ | Card + detail |
 | P2-04 | Filter bar / sheet polish | 🟨 | Chip row done; full sheet later |
-| P2-06 | Post detail | ✅ | `/post/[id]` + PostGallery |
-| P2-07 | Shelter profile | ✅ | `/shelter/[handle]` + animals grid |
+| P2-02b | Cursor infinite scroll | ✅ | FeedInfinite + loadMorePosts |
+| P2-06 | Post detail | ✅ | |
+| P2-07 | Shelter profile | ✅ | |
 
 ## Session log (append newest at top)
-- **2026-09-21 card carousel:** CardCarousel on PostCard (prev/next, dots, count badge, stopPropagation). P2-03 done.
-- **2026-09-21 shelter profile:** `/shelter/[handle]` with bio, links, stats, animals. Merged PR #8.
-- **2026-09-21 post detail:** `/post/[id]` with gallery, traits, shelter card. Merged PR #7.
-- **2026-09-21 explore:** First explore feed. Zod filters, PostCard, FeedGrid.
-- **2026-09-21 mock / ui / motion / tokens / scaffold:** P0-01…06 merged.
+- **2026-09-21 infinite scroll:** FeedInfinite + server action loadMorePosts, IntersectionObserver, skeletons. First page 12, then append.
+- **2026-09-21 card carousel:** CardCarousel on PostCard. Merged PR #9.
+- **2026-09-21 shelter profile:** Merged PR #8.
+- **2026-09-21 post detail:** Merged PR #7.
+- **2026-09-21 explore + foundation:** P0–P2-02 merged.
 
 ## What the next session should do
-1. Merge `feat/p2-card-carousel`.
-2. Infinite scroll / cursor pagination on explore.
-3. Filter sheet polish (mobile bottom sheet).
+1. Merge `feat/p2-infinite-scroll`.
+2. Filter sheet polish (mobile bottom sheet) or feed motion (Reveal batch / Flip).

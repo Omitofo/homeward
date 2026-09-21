@@ -3,13 +3,15 @@ import Link from "next/link";
 import { postsRepository } from "@/features/posts";
 import { parseFeedFilters, toDomainFilters } from "@/features/filters/schema";
 import { FilterChips } from "@/features/filters/FilterChips";
-import { FeedGrid } from "@/features/feed/FeedGrid";
+import { FeedInfinite } from "@/features/feed/FeedInfinite";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 
 export const metadata: Metadata = {
   title: "Explore",
   description: "Browse animals looking for a home.",
 };
+
+const PAGE_SIZE = 12;
 
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -20,9 +22,9 @@ export default async function ExplorePage({ searchParams }: Props) {
   const parsed = parseFeedFilters(params);
   const domainFilters = toDomainFilters(parsed);
 
-  const { items } = await postsRepository.list({
+  const { items, nextCursor } = await postsRepository.list({
     filters: domainFilters,
-    limit: 24,
+    limit: PAGE_SIZE,
   });
 
   return (
@@ -45,7 +47,9 @@ export default async function ExplorePage({ searchParams }: Props) {
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Find a companion</h1>
               <p className="mt-1 text-sm text-muted">
-                {items.length} animal{items.length === 1 ? "" : "s"} shown
+                {items.length}
+                {nextCursor ? "+" : ""} animal{items.length === 1 && !nextCursor ? "" : "s"}
+                {" shown"}
                 {parsed.species?.length || parsed.verified ? " · filtered" : ""}
               </p>
             </div>
@@ -53,7 +57,12 @@ export default async function ExplorePage({ searchParams }: Props) {
           <FilterChips filters={parsed} />
         </div>
 
-        <FeedGrid posts={items} />
+        <FeedInfinite
+          initialItems={items}
+          initialCursor={nextCursor}
+          filters={domainFilters}
+          pageSize={PAGE_SIZE}
+        />
       </main>
     </div>
   );
