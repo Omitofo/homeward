@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { AnimalPost } from "@/types/domain";
 import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
+import { CardCarousel } from "./CardCarousel";
 
 function statusVariant(status: AnimalPost["status"]) {
   if (status === "available") return "available" as const;
@@ -17,24 +17,15 @@ function ageLabel(months: number, group: string) {
 }
 
 export function PostCard({ post }: { post: AnimalPost }) {
-  const cover = post.media[0];
-
   return (
-    <article className="flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
-      {/* Media */}
-      <Link href={`/post/${post.id}`} className="relative block aspect-square overflow-hidden bg-secondary">
-        {cover ? (
-          <Image
-            src={cover.url}
-            alt={cover.altText}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted">No photo</div>
-        )}
-        <div className="absolute left-2 top-2">
+    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+      {/* Media — carousel when multiple photos */}
+      <Link
+        href={`/post/${post.id}`}
+        className="relative block aspect-square overflow-hidden bg-secondary"
+      >
+        <CardCarousel media={post.media} name={post.name} />
+        <div className="absolute left-2 top-2 z-10">
           <Badge variant={statusVariant(post.status)} withDot>
             {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
           </Badge>
