@@ -1,0 +1,17 @@
+# Minimal Supabase CLI config. Expand when linking a real project.
+# https://supabase.com/docs/guides/cli/config
+
+[project]
+# id is set by `supabase link`
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323

@@ -1,0 +1,15 @@
+-- Seed notes for Homeward (run after migrations when using a real project).
+-- For local demos Phases 1–2 still use src/data/mock/* via NEXT_PUBLIC_USE_MOCK_DATA=true.
+--
+-- Real seed requires auth.users rows first (Supabase Auth). Typical flow:
+-- 1. Create shelter users via Auth dashboard or service role
+-- 2. Update profiles.role = 'shelter'
+-- 3. Insert shelters + animal_posts + post_media
+--
+-- Example shape (replace UUIDs with real ones):
+--
+-- update public.profiles set role = 'shelter', display_name = 'Berlin Paws' where id = '...';
+-- insert into public.shelters (profile_id, handle, org_name, bio, country_code, region, city, verification_status)
+-- values ('...', 'berlin-paws', 'Berlin Paws', 'Community rescue.', 'DE', 'Berlin', 'Berlin', 'verified');
+-- insert into public.animal_posts (shelter_id, name, species, breed, sex, age_months, age_group, size, description, country_code, region, city, status, traits)
+-- values ('...', 'Luna', 'dog', 'Mixed', 'female', 36, 'adult', 'large', '...', 'DE', 'Berlin', 'Berlin', 'available', array['vaccinated','neutered']);
