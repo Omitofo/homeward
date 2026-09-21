@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sheet } from "@/components/ui";
 import { MagicLinkForm } from "./MagicLinkForm";
 import {
@@ -28,22 +28,16 @@ export function AuthSheet({ open, onOpenChange, intent, next }: Props) {
     ? intentBenefitCopy(intent.type)
     : "Sign in with a magic link — no password needed.";
 
-  function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen && intent) {
+  useEffect(() => {
+    if (open && intent) {
       setPendingIntent(intent);
     }
-    onOpenChange(nextOpen);
-  }
-
-  // Persist intent whenever the sheet is shown with one.
-  if (open && intent && typeof window !== "undefined") {
-    setPendingIntent(intent);
-  }
+  }, [open, intent]);
 
   return (
     <Sheet
       open={open}
-      onOpenChange={handleOpenChange}
+      onOpenChange={onOpenChange}
       title={mode === "signin" ? "Sign in" : "Join Homeward"}
     >
       <p className="mb-4 text-sm text-muted">{benefit}</p>
