@@ -1,9 +1,9 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-21 (explore feed session)
+**Last updated:** 2026-09-21 (post detail session)
 **Current phase:** Phase 2 — Explore (in progress)
-**Next task:** Post detail page, infinite scroll, image carousel, shelter profile
-**Repo status:** Foundation complete + first explore feed with mock data.
+**Next task:** Shelter profile (`/shelter/[handle]`), image carousel on feed cards, infinite scroll
+**Repo status:** Foundation + explore feed + post detail page.
 
 ## Phase overview
 | Phase | Name | Goal | Status |
@@ -26,17 +26,18 @@ Status legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | P0-02 / P0-07 | Husky + CI | 🟨 | Optional polish |
 | P2-01 | Filters schema (Zod) + URL state | ✅ | `src/features/filters/schema.ts` |
 | P2-02 | Feed grid + PostCard | ✅ | `/explore` with responsive grid |
-| P2-03 | Image carousel | ⬜ | |
+| P2-03 | Image carousel | 🟨 | Gallery on detail done; feed cards still single cover |
 | P2-04 | Filter bar / sheet polish | 🟨 | Chip row done; full sheet later |
-| P2-06 | Post detail | ⬜ | |
+| P2-06 | Post detail | ✅ | `/post/[id]` + PostGallery |
 | P2-07 | Shelter profile | ⬜ | |
 
 ## Session log (append newest at top)
+- **2026-09-21 post detail:** `/post/[id]` with metadata, gallery (keys + dots + thumbs), traits, shelter card, not-found.
 - **2026-09-21 explore:** First explore feed. Zod filters, PostCard, FeedGrid, `/explore` with species + verified chips.
 - **2026-09-21 mock:** P0-06 merged.
 - **2026-09-21 ui / motion / tokens / scaffold:** P0-01…05 merged.
 
 ## What the next session should do
-1. Merge `feat/p2-explore-feed`.
-2. Post detail page (`/post/[id]`) and/or shelter profile (`/shelter/[handle]`).
-3. Image carousel on cards and detail.
+1. Merge `feat/p2-post-detail`.
+2. Shelter profile page (`/shelter/[handle]`).
+3. Image carousel on feed cards (reuse PostGallery patterns).
