@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { ensureShelterProfile } from "@/features/auth/promote-shelter";
-import { AUTH_NEXT_COOKIE } from "@/features/auth/actions";
+import { AUTH_NEXT_COOKIE } from "@/features/auth/constants";
 
 function safeNext(path: string | null | undefined): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) {
@@ -64,7 +64,6 @@ export async function GET(request: NextRequest) {
     console.error("[auth/callback] ensureShelterProfile", e);
   }
 
-  // Clear one-time return path
   response.cookies.set(AUTH_NEXT_COOKIE, "", {
     httpOnly: true,
     path: "/",

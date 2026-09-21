@@ -9,10 +9,8 @@ import {
   magicLinkShelterSchema,
   magicLinkSignInSchema,
 } from "./schema";
+import { AUTH_NEXT_COOKIE } from "./constants";
 import type { ActionResult } from "./types";
-
-/** Cookie holds the post-login path so emailRedirectTo stays allowlist-stable. */
-export const AUTH_NEXT_COOKIE = "homeward_auth_next";
 
 function siteOrigin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
