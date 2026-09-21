@@ -2,7 +2,6 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { Reveal } from "@/motion/primitives/Reveal";
 import { MotionToggle } from "@/motion/components/MotionToggle";
-import { Button } from "@/components/ui";
 
 export default function HomePage() {
   return (
@@ -25,9 +24,12 @@ export default function HomePage() {
         </Reveal>
         <Reveal delay={0.24}>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button as-child={undefined}>
-              <Link href="/explore">Explore animals</Link>
-            </Button>
+            <Link
+              href="/explore"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Explore animals
+            </Link>
             <Link
               href="/tokens"
               className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
