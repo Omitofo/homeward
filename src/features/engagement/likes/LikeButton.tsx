@@ -33,7 +33,7 @@ export function LikeButton({
   size = "lg",
 }: Props) {
   const pathname = usePathname();
-  const { preference } = useMotionPreference();
+  const { enabled: motionEnabled } = useMotionPreference();
   const iconRef = useRef<HTMLSpanElement>(null);
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -81,7 +81,7 @@ export function LikeButton({
     // Optimistic
     setLiked(nextLiked);
     setCount(nextCount);
-    if (nextLiked && preference === "full") {
+    if (nextLiked && motionEnabled) {
       playLikeBurst(iconRef.current);
     }
 
