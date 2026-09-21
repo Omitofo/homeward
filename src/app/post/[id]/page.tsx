@@ -5,6 +5,7 @@ import { postsRepository } from "@/features/posts";
 import { Avatar, Badge, Button, VerifiedBadge } from "@/components/ui";
 import { PostGallery } from "@/features/posts/PostGallery";
 import { MotionToggle } from "@/motion/components/MotionToggle";
+import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
 
 type Props = {
@@ -34,11 +35,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const post = await postsRepository.getById(id);
   if (!post) {
-    return { title: "Animal not found" };
+    return { title: "Animal not found", robots: { index: false } };
   }
+
+  const title = `${post.name} · ${post.breed}`;
+  const description = post.description.slice(0, 160);
+  const image = post.media[0];
+  const url = `${siteConfig.url}/post/${post.id}`;
+
   return {
-    title: `${post.name} · ${post.breed}`,
-    description: post.description.slice(0, 160),
+    title,
+    description,
+    alternates: { canonical: `/post/${post.id}` },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url,
+      images: image
+        ? [
+            {
+              url: image.url,
+              width: image.width,
+              height: image.height,
+              alt: image.altText || post.name,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: image ? [image.url] : undefined,
+    },
   };
 }
 

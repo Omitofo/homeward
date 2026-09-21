@@ -1,4 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Animal not found",
+  robots: { index: false, follow: false },
+};
 
 export default function PostNotFound() {
   return (

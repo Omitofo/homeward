@@ -6,6 +6,7 @@ import { PostCard } from "./PostCard";
 import { gsap } from "@/motion/register";
 import { duration, ease, stagger, distance } from "@/motion/tokens";
 import { useMotionPreference } from "@/motion/hooks/useMotionPreference";
+import { EmptyState, EmptyStateLink } from "@/components/ui";
 
 /** Max cards to stagger at once (mobile perf). Rest appear instantly after. */
 const STAGGER_CAP = 12;
@@ -119,10 +120,11 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
 
   if (posts.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-card px-6 py-16 text-center">
-        <p className="text-lg font-medium text-foreground">No animals match</p>
-        <p className="mt-1 text-sm text-muted">Try clearing some filters.</p>
-      </div>
+      <EmptyState
+        title="No animals match"
+        description="Try clearing some filters or broadening your search."
+        action={<EmptyStateLink href="/explore">Clear filters</EmptyStateLink>}
+      />
     );
   }
 

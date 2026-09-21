@@ -6,6 +6,7 @@ import { postsRepository } from "@/features/posts";
 import { Avatar, Badge, Button, VerifiedBadge } from "@/components/ui";
 import { FeedGrid } from "@/features/feed/FeedGrid";
 import { MotionToggle } from "@/motion/components/MotionToggle";
+import { siteConfig } from "@/config/site";
 import type { VerificationStatus } from "@/types/domain";
 
 type Props = {
@@ -23,11 +24,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
   const shelter = await sheltersRepository.getByHandle(handle);
   if (!shelter) {
-    return { title: "Shelter not found" };
+    return { title: "Shelter not found", robots: { index: false } };
   }
+
+  const title = shelter.orgName;
+  const description = shelter.bio.slice(0, 160);
+  const url = `${siteConfig.url}/shelter/${shelter.handle}`;
+
   return {
-    title: shelter.orgName,
-    description: shelter.bio.slice(0, 160),
+    title,
+    description,
+    alternates: { canonical: `/shelter/${shelter.handle}` },
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      url,
+      images: shelter.avatarUrl
+        ? [{ url: shelter.avatarUrl, alt: shelter.orgName }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: shelter.avatarUrl ? [shelter.avatarUrl] : undefined,
+    },
   };
 }
 
