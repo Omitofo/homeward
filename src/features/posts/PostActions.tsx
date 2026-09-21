@@ -5,24 +5,38 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
-import type { PostStatus } from "@/types/domain";
+import { LikeButton } from "@/features/engagement";
+import type { PostStatus, Role } from "@/types/domain";
 
 type Props = {
   postId: string;
   status: PostStatus;
   signedIn: boolean;
+  likeCount: number;
+  initialLiked?: boolean;
+  userId?: string | null;
+  role?: Role | null;
 };
 
 /**
- * Like / Contact / Save on the post detail page.
- * Visitors are gated behind AuthSheet (intent preserved for magic-link return).
- * Real mutations arrive in Phase 4 (likes) and Phase 6 (chat).
+ * Contact / Like / Save on the post detail page.
+ * Visitors are gated behind AuthSheet. Likes are live (P4-01).
  */
-export function PostActions({ postId, status, signedIn }: Props) {
+export function PostActions({
+  postId,
+  status,
+  signedIn,
+  likeCount,
+  initialLiked = false,
+  userId,
+  role,
+}: Props) {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [intent, setIntent] = useState<AuthIntent | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const canLike = role !== "shelter";
 
   function gateOrRun(type: AuthIntent["type"], whenSignedIn: () => void) {
     if (signedIn) {
@@ -40,7 +54,7 @@ export function PostActions({ postId, status, signedIn }: Props) {
   return (
     <>
       <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-start gap-3">
           <Button
             size="lg"
             disabled={status !== "available" && signedIn}
@@ -59,19 +73,15 @@ export function PostActions({ postId, status, signedIn }: Props) {
                 : "Already adopted"}
           </Button>
 
-          <Button
-            variant="secondary"
+          <LikeButton
+            postId={postId}
+            initialCount={likeCount}
+            initialLiked={initialLiked}
+            signedIn={signedIn}
+            userId={userId}
+            canLike={canLike}
             size="lg"
-            onClick={() =>
-              gateOrRun("like", () =>
-                setNotice(
-                  "Likes are coming in Phase 4. You're signed in — this will stick then.",
-                ),
-              )
-            }
-          >
-            Like
-          </Button>
+          />
 
           <Button
             variant="ghost"
