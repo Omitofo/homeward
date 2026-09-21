@@ -1,9 +1,9 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-21 (infinite scroll session)
+**Last updated:** 2026-09-21 (filter sheet session)
 **Current phase:** Phase 2 — Explore (in progress)
-**Next task:** Filter sheet polish (mobile), feed motion (batch entry / Flip)
-**Repo status:** Foundation + explore (filters, cards, carousel, infinite scroll) + post detail + shelter profile.
+**Next task:** Feed motion (batch Reveal / Flip on filter change) or empty/error/404 + SEO (P2-08)
+**Repo status:** Foundation + explore (filters + sheet, cards, carousel, infinite scroll) + post detail + shelter profile.
 
 ## Phase overview
 | Phase | Name | Goal | Status |
@@ -27,18 +27,21 @@ Status legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | P2-01 | Filters schema (Zod) + URL state | ✅ | |
 | P2-02 | Feed grid + PostCard | ✅ | |
 | P2-03 | Image carousel | ✅ | Card + detail |
-| P2-04 | Filter bar / sheet polish | 🟨 | Chip row done; full sheet later |
+| P2-04 | Filter bar / sheet polish | ✅ | Chip row + mobile FilterSheet (species/size/age/sex/verified/q) |
 | P2-02b | Cursor infinite scroll | ✅ | FeedInfinite + loadMorePosts |
+| P2-05 | Feed motion (batch Reveal / Flip) | ⬜ | Next strong candidate |
 | P2-06 | Post detail | ✅ | |
 | P2-07 | Shelter profile | ✅ | |
+| P2-08 | Empty/error/404 + SEO | ⬜ | |
 
 ## Session log (append newest at top)
-- **2026-09-21 infinite scroll:** FeedInfinite + server action loadMorePosts, IntersectionObserver, skeletons. First page 12, then append.
+- **2026-09-21 filter sheet:** FilterSheet + FilterBar. Full criteria in bottom sheet; Apply/Clear via URL. Completes P2-04.
+- **2026-09-21 infinite scroll:** FeedInfinite + server action loadMorePosts, IntersectionObserver, skeletons. Merged PR #10.
 - **2026-09-21 card carousel:** CardCarousel on PostCard. Merged PR #9.
 - **2026-09-21 shelter profile:** Merged PR #8.
 - **2026-09-21 post detail:** Merged PR #7.
 - **2026-09-21 explore + foundation:** P0–P2-02 merged.
 
 ## What the next session should do
-1. Merge `feat/p2-infinite-scroll`.
-2. Filter sheet polish (mobile bottom sheet) or feed motion (Reveal batch / Flip).
+1. Merge `feat/p2-filter-sheet` if not already.
+2. Feed motion (P2-05: batch entry + Flip on filter change) or P2-08 empty/SEO states.
