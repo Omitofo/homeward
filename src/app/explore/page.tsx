@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { postsRepository } from "@/features/posts";
 import { parseFeedFilters, toDomainFilters } from "@/features/filters/schema";
-import { FilterChips } from "@/features/filters/FilterChips";
+import { FilterBar } from "@/features/filters/FilterBar";
 import { FeedInfinite } from "@/features/feed/FeedInfinite";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 
@@ -27,6 +27,15 @@ export default async function ExplorePage({ searchParams }: Props) {
     limit: PAGE_SIZE,
   });
 
+  const hasFilters =
+    Boolean(parsed.species?.length) ||
+    Boolean(parsed.size?.length) ||
+    Boolean(parsed.ageGroup?.length) ||
+    Boolean(parsed.sex?.length) ||
+    Boolean(parsed.verified) ||
+    Boolean(parsed.q) ||
+    Boolean(parsed.country);
+
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
@@ -50,11 +59,11 @@ export default async function ExplorePage({ searchParams }: Props) {
                 {items.length}
                 {nextCursor ? "+" : ""} animal{items.length === 1 && !nextCursor ? "" : "s"}
                 {" shown"}
-                {parsed.species?.length || parsed.verified ? " · filtered" : ""}
+                {hasFilters ? " · filtered" : ""}
               </p>
             </div>
           </div>
-          <FilterChips filters={parsed} />
+          <FilterBar filters={parsed} />
         </div>
 
         <FeedInfinite
