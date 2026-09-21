@@ -96,6 +96,10 @@ export default async function PostDetailPage({ params }: Props) {
     listComments(post.id),
   ]);
 
+  const shareUrl = `${siteConfig.url}/post/${post.id}`;
+  const shareTitle = `${post.name} · ${post.breed}`;
+  const shareText = post.description.slice(0, 120);
+
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
@@ -214,6 +218,9 @@ export default async function PostDetailPage({ params }: Props) {
               initialLiked={initialLiked}
               userId={profile?.id}
               role={profile?.role}
+              shareTitle={shareTitle}
+              shareUrl={shareUrl}
+              shareText={shareText}
             />
 
             <Link

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
-import { LikeButton } from "@/features/engagement";
+import { LikeButton, ShareButton } from "@/features/engagement";
 import type { PostStatus, Role } from "@/types/domain";
 
 type Props = {
@@ -16,11 +16,14 @@ type Props = {
   initialLiked?: boolean;
   userId?: string | null;
   role?: Role | null;
+  shareTitle: string;
+  shareUrl: string;
+  shareText?: string;
 };
 
 /**
- * Contact / Like / Save on the post detail page.
- * Visitors are gated behind AuthSheet. Likes are live (P4-01).
+ * Contact / Like / Share / Save on the post detail page.
+ * Share is public. Like is gated. Contact/Save still placeholder when signed in.
  */
 export function PostActions({
   postId,
@@ -30,6 +33,9 @@ export function PostActions({
   initialLiked = false,
   userId,
   role,
+  shareTitle,
+  shareUrl,
+  shareText,
 }: Props) {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -80,6 +86,13 @@ export function PostActions({
             signedIn={signedIn}
             userId={userId}
             canLike={canLike}
+            size="lg"
+          />
+
+          <ShareButton
+            url={shareUrl}
+            title={shareTitle}
+            text={shareText}
             size="lg"
           />
 
