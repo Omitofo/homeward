@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { ensureShelterProfile } from "@/features/auth/promote-shelter";
+import { AUTH_NEXT_COOKIE } from "@/features/auth/actions";
 
-function safeNext(path: string | null): string {
+function safeNext(path: string | null | undefined): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) {
     return "/me";
   }
@@ -11,13 +12,15 @@ function safeNext(path: string | null): string {
 
 /**
  * Supabase email magic-link lands here with ?code=…
- * Exchange the code for a session, optionally promote shelter accounts,
- * then redirect to the intended page.
+ * Return path comes from a short-lived cookie (set when the OTP was requested),
+ * with ?next= as a fallback for older links.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNext(searchParams.get("next"));
+  const next = safeNext(
+    request.cookies.get(AUTH_NEXT_COOKIE)?.value ?? searchParams.get("next"),
+  );
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=missing_code`);
@@ -55,12 +58,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback`);
   }
 
-  // Shelter sign-up metadata → promote role + create shelters row.
   try {
     await ensureShelterProfile(data.user.id, data.user.user_metadata ?? {});
   } catch (e) {
     console.error("[auth/callback] ensureShelterProfile", e);
   }
+
+  // Clear one-time return path
+  response.cookies.set(AUTH_NEXT_COOKIE, "", {
+    httpOnly: true,
+    path: "/",
+    maxAge: 0,
+  });
 
   return response;
 }

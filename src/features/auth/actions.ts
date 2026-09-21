@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -10,6 +11,9 @@ import {
 } from "./schema";
 import type { ActionResult } from "./types";
 
+/** Cookie holds the post-login path so emailRedirectTo stays allowlist-stable. */
+export const AUTH_NEXT_COOKIE = "homeward_auth_next";
+
 function siteOrigin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
@@ -19,6 +23,20 @@ function safeNextPath(next: string | undefined): string {
     return "/me";
   }
   return next;
+}
+
+function mapOtpError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("rate") || lower.includes("too many")) {
+    return "Too many login emails sent. Wait a minute and try again.";
+  }
+  if (lower.includes("redirect") || lower.includes("not allowed")) {
+    return "Login redirect is not allowed. Check Supabase Auth URL configuration.";
+  }
+  if (lower.includes("email") && lower.includes("invalid")) {
+    return "That email address does not look valid.";
+  }
+  return "Could not send the magic link. Please try again in a moment.";
 }
 
 async function sendMagicLink(params: {
@@ -35,7 +53,18 @@ async function sendMagicLink(params: {
   }
 
   const origin = siteOrigin();
-  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(params.next)}`;
+  // Bare callback URL must match Supabase redirect allowlist exactly.
+  // Return path is carried in a short-lived cookie (see auth/callback).
+  const redirectTo = `${origin}/auth/callback`;
+
+  const cookieStore = await cookies();
+  cookieStore.set(AUTH_NEXT_COOKIE, params.next, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 15,
+    secure: process.env.NODE_ENV === "production",
+  });
 
   const { error } = await supabase.auth.signInWithOtp({
     email: params.email,
@@ -47,12 +76,8 @@ async function sendMagicLink(params: {
   });
 
   if (error) {
-    // Generic message — avoid account enumeration.
     console.error("[auth] signInWithOtp failed", error.message);
-    return {
-      ok: false,
-      error: "Could not send the magic link. Please try again in a moment.",
-    };
+    return { ok: false, error: mapOtpError(error.message) };
   }
 
   return { ok: true, data: undefined };
@@ -110,7 +135,6 @@ export async function signUpShelter(input: unknown): Promise<ActionResult> {
     };
   }
 
-  // Soft uniqueness check (final enforcement is the unique constraint).
   const admin = createAdminClient();
   if (admin) {
     const { data: existing } = await admin
