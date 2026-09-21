@@ -1,0 +1,153 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { sheltersRepository } from "@/features/shelters";
+import { postsRepository } from "@/features/posts";
+import { Avatar, Badge, Button, VerifiedBadge } from "@/components/ui";
+import { FeedGrid } from "@/features/feed/FeedGrid";
+import { MotionToggle } from "@/motion/components/MotionToggle";
+import type { VerificationStatus } from "@/types/domain";
+
+type Props = {
+  params: Promise<{ handle: string }>;
+};
+
+function verificationLabel(status: VerificationStatus) {
+  if (status === "verified") return null; // use VerifiedBadge
+  if (status === "pending") return "Pending verification";
+  if (status === "rejected") return "Not verified";
+  return "Unverified";
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { handle } = await params;
+  const shelter = await sheltersRepository.getByHandle(handle);
+  if (!shelter) {
+    return { title: "Shelter not found" };
+  }
+  return {
+    title: shelter.orgName,
+    description: shelter.bio.slice(0, 160),
+  };
+}
+
+export default async function ShelterProfilePage({ params }: Props) {
+  const { handle } = await params;
+  const shelter = await sheltersRepository.getByHandle(handle);
+
+  if (!shelter) {
+    notFound();
+  }
+
+  const animals = await postsRepository.listByShelter(shelter.id);
+  const availableCount = animals.filter((a) => a.status === "available").length;
+
+  return (
+    <div className="min-h-full">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/explore"
+              className="text-sm font-medium text-muted hover:text-foreground"
+            >
+              ← Explore
+            </Link>
+            <span className="hidden text-border sm:inline">|</span>
+            <Link href="/" className="hidden text-lg font-semibold tracking-tight sm:inline">
+              Homeward
+            </Link>
+          </div>
+          <MotionToggle />
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        {/* Profile header */}
+        <section className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start">
+          <Avatar
+            name={shelter.orgName}
+            size="xl"
+            src={shelter.avatarUrl}
+            className="mx-auto sm:mx-0"
+          />
+
+          <div className="flex-1 space-y-4 text-center sm:text-left">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  {shelter.orgName}
+                </h1>
+                {shelter.verificationStatus === "verified" ? (
+                  <VerifiedBadge />
+                ) : (
+                  <Badge variant="neutral">
+                    {verificationLabel(shelter.verificationStatus)}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted">@{shelter.handle}</p>
+              <p className="text-sm text-muted">
+                {shelter.city}, {shelter.region} · {shelter.countryCode}
+              </p>
+            </div>
+
+            <p className="mx-auto max-w-xl leading-relaxed text-foreground sm:mx-0">
+              {shelter.bio}
+            </p>
+
+            {/* Stats */}
+            <div className="flex flex-wrap justify-center gap-6 text-sm sm:justify-start">
+              <div>
+                <span className="font-semibold text-foreground">{animals.length}</span>{" "}
+                <span className="text-muted">listed</span>
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">{availableCount}</span>{" "}
+                <span className="text-muted">available</span>
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">{shelter.animalCount}</span>{" "}
+                <span className="text-muted">in care</span>
+              </div>
+            </div>
+
+            {/* Links */}
+            {shelter.links.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                {shelter.links.map((link) => (
+                  <a
+                    key={link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-9 items-center rounded-md border border-border bg-secondary px-3 text-sm font-medium text-secondary-foreground hover:bg-accent"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-center sm:justify-start">
+              <Button size="md" disabled>
+                Message (soon)
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Animals */}
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-lg font-semibold tracking-tight">Animals</h2>
+            <p className="text-sm text-muted">
+              {animals.length} listing{animals.length === 1 ? "" : "s"}
+            </p>
+          </div>
+          <FeedGrid posts={animals} />
+        </section>
+      </main>
+    </div>
+  );
+}
