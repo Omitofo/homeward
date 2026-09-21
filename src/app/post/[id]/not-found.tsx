@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Button } from "@/components/ui";
 
 export default function PostNotFound() {
   return (
@@ -8,11 +7,12 @@ export default function PostNotFound() {
       <p className="max-w-sm text-muted">
         This listing may have been removed or the link is incorrect.
       </p>
-      <Button asChild={false}>
-        <Link href="/explore" className="inline-flex items-center justify-center">
-          Back to Explore
-        </Link>
-      </Button>
+      <Link
+        href="/explore"
+        className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+      >
+        Back to Explore
+      </Link>
     </div>
   );
 }

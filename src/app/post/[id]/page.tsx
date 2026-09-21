@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { postsRepository } from "@/features/posts";
@@ -143,7 +142,7 @@ export default async function PostDetailPage({ params }: Props) {
               </span>
             </div>
 
-            {/* CTA */}
+            {/* CTA — contact/save wired in Phase 4 / chat */}
             <div className="flex flex-wrap gap-3">
               <Button size="lg" disabled={post.status !== "available"}>
                 {post.status === "available"
@@ -152,8 +151,8 @@ export default async function PostDetailPage({ params }: Props) {
                     ? "Currently reserved"
                     : "Already adopted"}
               </Button>
-              <Button variant="secondary" size="lg" asChild={false}>
-                <span className="pointer-events-none opacity-60">Save (soon)</span>
+              <Button variant="secondary" size="lg" disabled>
+                Save (soon)
               </Button>
             </div>
 
