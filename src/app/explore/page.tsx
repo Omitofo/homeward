@@ -5,6 +5,7 @@ import { parseFeedFilters, toDomainFilters } from "@/features/filters/schema";
 import { FilterBar } from "@/features/filters/FilterBar";
 import { FeedInfinite } from "@/features/feed/FeedInfinite";
 import { MotionToggle } from "@/motion/components/MotionToggle";
+import { getCurrentProfile } from "@/features/auth";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -31,10 +32,13 @@ export default async function ExplorePage({ searchParams }: Props) {
   const parsed = parseFeedFilters(params);
   const domainFilters = toDomainFilters(parsed);
 
-  const { items, nextCursor } = await postsRepository.list({
-    filters: domainFilters,
-    limit: PAGE_SIZE,
-  });
+  const [{ items, nextCursor }, profile] = await Promise.all([
+    postsRepository.list({
+      filters: domainFilters,
+      limit: PAGE_SIZE,
+    }),
+    getCurrentProfile(),
+  ]);
 
   const hasFilters =
     Boolean(parsed.species?.length) ||
@@ -55,7 +59,24 @@ export default async function ExplorePage({ searchParams }: Props) {
             </Link>
             <span className="hidden text-sm text-muted sm:inline">Explore</span>
           </div>
-          <MotionToggle />
+          <div className="flex items-center gap-3">
+            {profile ? (
+              <Link
+                href="/me"
+                className="text-sm font-medium text-muted hover:text-foreground"
+              >
+                {profile.displayName}
+              </Link>
+            ) : (
+              <Link
+                href="/login?next=/explore"
+                className="text-sm font-medium text-muted hover:text-foreground"
+              >
+                Sign in
+              </Link>
+            )}
+            <MotionToggle />
+          </div>
         </div>
       </header>
 
