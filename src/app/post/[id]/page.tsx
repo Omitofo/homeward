@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { postsRepository } from "@/features/posts";
-import { Avatar, Badge, Button, VerifiedBadge } from "@/components/ui";
+import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { PostGallery } from "@/features/posts/PostGallery";
+import { PostActions } from "@/features/posts/PostActions";
+import { getCurrentProfile, IntentResume } from "@/features/auth";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
@@ -74,11 +76,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PostDetailPage({ params }: Props) {
   const { id } = await params;
-  const post = await postsRepository.getById(id);
+  const [post, profile] = await Promise.all([
+    postsRepository.getById(id),
+    getCurrentProfile(),
+  ]);
 
   if (!post) {
     notFound();
   }
+
+  const signedIn = profile !== null;
 
   return (
     <div className="min-h-full">
@@ -96,11 +103,32 @@ export default async function PostDetailPage({ params }: Props) {
               Homeward
             </Link>
           </div>
-          <MotionToggle />
+          <div className="flex items-center gap-3">
+            {profile ? (
+              <Link
+                href="/me"
+                className="text-sm font-medium text-muted hover:text-foreground"
+              >
+                {profile.displayName}
+              </Link>
+            ) : (
+              <Link
+                href={`/login?next=${encodeURIComponent(`/post/${post.id}`)}`}
+                className="text-sm font-medium text-muted hover:text-foreground"
+              >
+                Sign in
+              </Link>
+            )}
+            <MotionToggle />
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-6">
+          <IntentResume signedIn={signedIn} />
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Gallery */}
           <div className="lg:sticky lg:top-20 lg:self-start">
@@ -172,19 +200,11 @@ export default async function PostDetailPage({ params }: Props) {
               </span>
             </div>
 
-            {/* CTA — contact/save wired in Phase 4 / chat */}
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" disabled={post.status !== "available"}>
-                {post.status === "available"
-                  ? "Contact shelter"
-                  : post.status === "reserved"
-                    ? "Currently reserved"
-                    : "Already adopted"}
-              </Button>
-              <Button variant="secondary" size="lg" disabled>
-                Save (soon)
-              </Button>
-            </div>
+            <PostActions
+              postId={post.id}
+              status={post.status}
+              signedIn={signedIn}
+            />
 
             {/* Shelter card */}
             <Link

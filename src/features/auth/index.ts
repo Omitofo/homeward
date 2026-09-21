@@ -8,4 +8,14 @@ export {
 export { ensureShelterProfile } from "./promote-shelter";
 export { MagicLinkForm } from "./components/MagicLinkForm";
 export { SignOutButton } from "./components/SignOutButton";
+export { AuthSheet } from "./components/AuthSheet";
+export { IntentResume } from "./components/IntentResume";
+export {
+  setPendingIntent,
+  getPendingIntent,
+  clearPendingIntent,
+  intentBenefitCopy,
+  type AuthIntent,
+  type AuthIntentType,
+} from "./intent";
 export type { AuthProfile, ActionResult } from "./types";
