@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { AnimalPost } from "@/types/domain";
 import { PostCard } from "./PostCard";
-import { gsap, Flip } from "@/motion/register";
+import { gsap } from "@/motion/register";
 import { duration, ease, stagger, distance } from "@/motion/tokens";
 import { useMotionPreference } from "@/motion/hooks/useMotionPreference";
 
@@ -31,68 +31,22 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
       ids.length > prev.length &&
       prev.every((id, i) => ids[i] === id);
 
-    const run = () => {
-      if (level === "off") {
-        gsap.set(cards, { autoAlpha: 1, y: 0, clearProps: "transform" });
+    if (level === "off") {
+      gsap.set(cards, { autoAlpha: 1, y: 0, clearProps: "transform" });
+      prevIdsRef.current = ids;
+      return;
+    }
+
+    if (isAppend) {
+      const newCards = cards.slice(prev.length);
+      if (newCards.length === 0) {
         prevIdsRef.current = ids;
         return;
       }
-
-      if (isAppend) {
-        const newCards = cards.slice(prev.length);
-        if (newCards.length === 0) {
-          prevIdsRef.current = ids;
-          return;
-        }
-
-        if (level === "reduced") {
-          gsap.fromTo(
-            newCards,
-            { autoAlpha: 0 },
-            {
-              autoAlpha: 1,
-              duration: duration.instant,
-              stagger: stagger.tight,
-              ease: ease.out,
-              overwrite: true,
-            },
-          );
-        } else {
-          gsap.fromTo(
-            newCards,
-            { autoAlpha: 0, y: distance.sm },
-            {
-              autoAlpha: 1,
-              y: 0,
-              duration: duration.fast,
-              stagger: stagger.tight,
-              ease: ease.out,
-              overwrite: true,
-            },
-          );
-        }
-        prevIdsRef.current = ids;
-        return;
-      }
-
-      // Full replace / first paint — optional Flip when some cards persist
-      const prevSet = new Set(prev);
-      const hasOverlap = ids.some((id) => prevSet.has(id)) && prev.length > 0;
-
-      if (hasOverlap && level === "full" && prev.length > 0) {
-        // Capture was not taken pre-commit; use a soft crossfade + stagger instead
-        // of a broken Flip (React already swapped the DOM).
-        // Still set data-flip-id so shared-element transitions can use Flip later.
-      }
-
-      const toAnimate = cards.slice(0, STAGGER_CAP);
-      const rest = cards.slice(STAGGER_CAP);
-
-      if (rest.length) gsap.set(rest, { autoAlpha: 1, y: 0 });
 
       if (level === "reduced") {
         gsap.fromTo(
-          toAnimate,
+          newCards,
           { autoAlpha: 0 },
           {
             autoAlpha: 1,
@@ -104,25 +58,60 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
         );
       } else {
         gsap.fromTo(
-          toAnimate,
-          { autoAlpha: 0, y: distance.md },
+          newCards,
+          { autoAlpha: 0, y: distance.sm },
           {
             autoAlpha: 1,
             y: 0,
-            duration: duration.base,
-            stagger: stagger.base,
+            duration: duration.fast,
+            stagger: stagger.tight,
             ease: ease.out,
             overwrite: true,
           },
         );
       }
-
       prevIdsRef.current = ids;
-    };
 
-    run();
+      return () => {
+        gsap.killTweensOf(newCards);
+      };
+    }
 
-    // Cleanup: kill tweens on unmount / before next run
+    // Full replace / first paint — batch stagger (M5)
+    const toAnimate = cards.slice(0, STAGGER_CAP);
+    const rest = cards.slice(STAGGER_CAP);
+
+    if (rest.length) gsap.set(rest, { autoAlpha: 1, y: 0 });
+
+    if (level === "reduced") {
+      gsap.fromTo(
+        toAnimate,
+        { autoAlpha: 0 },
+        {
+          autoAlpha: 1,
+          duration: duration.instant,
+          stagger: stagger.tight,
+          ease: ease.out,
+          overwrite: true,
+        },
+      );
+    } else {
+      gsap.fromTo(
+        toAnimate,
+        { autoAlpha: 0, y: distance.md },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: duration.base,
+          stagger: stagger.base,
+          ease: ease.out,
+          overwrite: true,
+        },
+      );
+    }
+
+    prevIdsRef.current = ids;
+
     return () => {
       gsap.killTweensOf(cards);
     };
@@ -148,7 +137,6 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
           data-feed-card
           data-flip-id={post.id}
           // Hidden until GSAP sets autoAlpha (avoids FOUC when motion is on).
-          // Off level is handled in the effect with an immediate set.
           style={level === "off" ? undefined : { opacity: 0 }}
         >
           <PostCard post={post} />
@@ -157,6 +145,3 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
     </div>
   );
 }
-
-// Keep Flip imported so the plugin stays registered for future shared-element work.
-void Flip;
