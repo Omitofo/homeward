@@ -7,3 +7,4 @@ export {
   deleteComment,
 } from "./comments/actions";
 export type { CommentItem } from "./comments/types";
+export { ShareButton } from "./share/ShareButton";
