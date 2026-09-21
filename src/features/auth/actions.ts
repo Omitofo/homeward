@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   magicLinkAdopterSchema,
@@ -26,7 +26,7 @@ async function sendMagicLink(params: {
   next: string;
   data?: Record<string, string>;
 }): Promise<ActionResult> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   if (!supabase) {
     return {
       ok: false,
@@ -136,7 +136,7 @@ export async function signUpShelter(input: unknown): Promise<ActionResult> {
 }
 
 export async function signOut(): Promise<void> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   if (supabase) {
     await supabase.auth.signOut();
   }
