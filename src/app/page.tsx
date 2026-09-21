@@ -2,6 +2,7 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { Reveal } from "@/motion/primitives/Reveal";
 import { MotionToggle } from "@/motion/components/MotionToggle";
+import { Button } from "@/components/ui";
 
 export default function HomePage() {
   return (
@@ -9,7 +10,7 @@ export default function HomePage() {
       <div className="max-w-xl text-center">
         <Reveal>
           <p className="mb-3 text-sm font-medium tracking-wide text-muted uppercase">
-            Phase 0 · Foundation
+            Phase 0–2 · Foundation + Explore
           </p>
         </Reveal>
         <Reveal delay={0.08}>
@@ -23,18 +24,23 @@ export default function HomePage() {
           </p>
         </Reveal>
         <Reveal delay={0.24}>
-          <p className="mt-8 text-sm text-muted-foreground">
-            Motion infrastructure is live. Toggle below or use{" "}
-            <code className="rounded bg-secondary px-1 py-0.5 text-xs">?motion=off</code>
-            . Tokens at{" "}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Button as-child={undefined}>
+              <Link href="/explore">Explore animals</Link>
+            </Button>
             <Link
               href="/tokens"
-              className="font-medium text-primary underline-offset-4 hover:underline"
+              className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
             >
-              /tokens
+              Design tokens
             </Link>
-            .
-          </p>
+            <Link
+              href="/ui"
+              className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
+            >
+              UI kit
+            </Link>
+          </div>
         </Reveal>
 
         <div className="mt-10 flex justify-center">
