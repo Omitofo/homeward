@@ -4,8 +4,8 @@ export {
   signUpAdopter,
   signUpShelter,
   signOut,
-  ensureShelterProfile,
 } from "./actions";
+export { ensureShelterProfile } from "./promote-shelter";
 export { MagicLinkForm } from "./components/MagicLinkForm";
 export { SignOutButton } from "./components/SignOutButton";
 export type { AuthProfile, ActionResult } from "./types";

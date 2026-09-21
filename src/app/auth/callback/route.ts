@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { ensureShelterProfile } from "@/features/auth/actions";
+import { ensureShelterProfile } from "@/features/auth/promote-shelter";
 
 function safeNext(path: string | null): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) {
@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Shelter sign-up metadata → promote role + create shelters row.
-  // Uses admin client; does not depend on the new cookies being readable yet.
   try {
     await ensureShelterProfile(data.user.id, data.user.user_metadata ?? {});
   } catch (e) {
