@@ -56,8 +56,9 @@ export async function GET(request: NextRequest) {
   }
 
   // Shelter sign-up metadata → promote role + create shelters row.
+  // Uses admin client; does not depend on the new cookies being readable yet.
   try {
-    await ensureShelterProfile(data.user.id);
+    await ensureShelterProfile(data.user.id, data.user.user_metadata ?? {});
   } catch (e) {
     console.error("[auth/callback] ensureShelterProfile", e);
   }

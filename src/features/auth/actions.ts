@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -144,21 +143,23 @@ export async function signOut(): Promise<void> {
   redirect("/");
 }
 
+export type ShelterMeta = {
+  intent?: unknown;
+  handle?: unknown;
+  org_name?: unknown;
+  display_name?: unknown;
+};
+
 /**
- * Called from the auth callback after a successful session exchange.
- * If the user signed up as a shelter, promote role and create the shelters row.
+ * Promote a brand-new shelter account after magic-link confirmation.
  * Uses the service-role client because `role` must not be client-writable.
+ * Safe to call with the user object returned from exchangeCodeForSession
+ * (does not re-read cookies).
  */
-export async function ensureShelterProfile(userId: string): Promise<void> {
-  const supabase = await createServerClient();
-  if (!supabase) return;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || user.id !== userId) return;
-
-  const meta = user.user_metadata ?? {};
+export async function ensureShelterProfile(
+  userId: string,
+  meta: ShelterMeta,
+): Promise<void> {
   if (meta.intent !== "shelter") return;
 
   const handle = typeof meta.handle === "string" ? meta.handle : null;
@@ -174,7 +175,6 @@ export async function ensureShelterProfile(userId: string): Promise<void> {
     return;
   }
 
-  // Already a shelter?
   const { data: existingShelter } = await admin
     .from("shelters")
     .select("id")
@@ -205,13 +205,4 @@ export async function ensureShelterProfile(userId: string): Promise<void> {
   if (error) {
     console.error("[auth] shelter insert failed", error.message);
   }
-}
-
-/** Used only so the callback can read the request origin if needed. */
-export async function getRequestOrigin(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  if (host) return `${proto}://${host}`;
-  return siteOrigin();
 }
