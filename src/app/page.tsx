@@ -9,7 +9,7 @@ export default function HomePage() {
       <div className="max-w-xl text-center">
         <Reveal>
           <p className="mb-3 text-sm font-medium tracking-wide text-muted uppercase">
-            Phase 0 · Foundation
+            Phase 0–2 · Foundation + Explore
           </p>
         </Reveal>
         <Reveal delay={0.08}>
@@ -23,18 +23,26 @@ export default function HomePage() {
           </p>
         </Reveal>
         <Reveal delay={0.24}>
-          <p className="mt-8 text-sm text-muted-foreground">
-            Motion infrastructure is live. Toggle below or use{" "}
-            <code className="rounded bg-secondary px-1 py-0.5 text-xs">?motion=off</code>
-            . Tokens at{" "}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/explore"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Explore animals
+            </Link>
             <Link
               href="/tokens"
-              className="font-medium text-primary underline-offset-4 hover:underline"
+              className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
             >
-              /tokens
+              Design tokens
             </Link>
-            .
-          </p>
+            <Link
+              href="/ui"
+              className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
+            >
+              UI kit
+            </Link>
+          </div>
         </Reveal>
 
         <div className="mt-10 flex justify-center">
