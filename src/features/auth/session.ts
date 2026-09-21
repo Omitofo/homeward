@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { Role } from "@/types/domain";
 import type { AuthProfile } from "./types";
 
@@ -7,7 +7,7 @@ import type { AuthProfile } from "./types";
  * Safe to call from Server Components and Server Actions.
  */
 export async function getCurrentProfile(): Promise<AuthProfile | null> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   if (!supabase) return null;
 
   const {
