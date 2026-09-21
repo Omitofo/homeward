@@ -42,6 +42,11 @@ Alternatives considered: Inter (too generic), DM Sans, Figtree, Satoshi.
 Why: Photos of animals carry the emotional color; UI stays quiet and trustworthy. Teal (#0d9488) feels calm and nature-adjacent without the overused "pet green". Amber (#f59e0b) is reserved exclusively for the Verified badge so it stays recognizable. Full token set (including dark theme) lives in `src/styles/tokens.css`.
 Alternatives: coral/rose primary (more "heart" but noisier against photos), soft indigo, pure neutral + one accent.
 
+**D-013 — Intro hero: typographic + photography (not match quiz)** · Accepted · 2026-09-21
+Why: Matches design north star (photos as hero, UI as frame) and GSAP impact lab goals with a single clear moment (word stagger). Avoids Club SplitText dependency — manual word spans. Pinned scroll story is a later enhancement (P1-03) with mobile stacked fallback.
+Details: `docs/11-INTRO-CONCEPT.md`.
+Alternatives: interactive match moment (more product, less cinematic); pure typographic with no imagery.
+
 ## Open questions for the owner (answer any time; defaults above apply until then)
 1. **Project name** (Homeward is a placeholder) and rough brand feeling (playful, calm, editorial?).
 2. **Can shelters publish before being verified?** Default: yes, without the badge, and a "Verified only" filter exists. Alternative: posting requires verification.
@@ -49,6 +54,6 @@ Alternatives: coral/rose primary (more "heart" but noisier against photos), soft
 4. **Comments:** flat or threaded replies? Default: flat, one level of replies later.
 5. **Hosting/legal region:** EU-centric or global? Affects GDPR posture and Supabase region.
 6. **Animals scope:** dogs and cats first, or all species from day one? Default: dog, cat, rabbit, bird, other.
-7. **Hero concept preference:** typographic + photography, a pinned scroll story, or an interactive "match" moment? (Decided in P1-01.)
+7. **Hero concept preference:** ~~typographic + photography, a pinned scroll story, or an interactive "match" moment?~~ → **D-013** (typographic + photography).
 8. **Smooth scrolling (ScrollSmoother/Lenis-style):** yes/no? Default: evaluate in P1-05, off on touch.
 9. **Real content:** will there be real shelter images/text for demos, or stock/mock? Default: mock, with licensed/free images.

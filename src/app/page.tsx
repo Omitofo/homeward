@@ -1,54 +1,70 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { postsRepository } from "@/features/posts";
+import { Hero } from "@/features/intro/Hero";
+import { StoryBeats } from "@/features/intro/StoryBeats";
+import { Stats } from "@/features/intro/Stats";
+import { CardPeek } from "@/features/intro/CardPeek";
+import { IntroFooter } from "@/features/intro/IntroFooter";
 import { siteConfig } from "@/config/site";
-import { Reveal } from "@/motion/primitives/Reveal";
-import { MotionToggle } from "@/motion/components/MotionToggle";
 
-export default function HomePage() {
+export const metadata: Metadata = {
+  title: {
+    absolute: `${siteConfig.name} · Find a companion`,
+  },
+  description: siteConfig.description,
+  openGraph: {
+    title: `${siteConfig.name} · Find a companion`,
+    description: siteConfig.description,
+    url: siteConfig.url,
+  },
+};
+
+export default async function HomePage() {
+  const { items } = await postsRepository.list({ limit: 8 });
+
+  // Rough mock aggregates for the stats strip
+  const countries = new Set(items.map((p) => p.countryCode)).size;
+  const shelterIds = new Set(items.map((p) => p.shelter.id)).size;
+
+  // Prefer a fuller list for counts when available
+  const all = await postsRepository.list({ limit: 40 });
+  const animalCount = all.items.length + (all.nextCursor ? 10 : 0);
+  const countryCount = new Set(all.items.map((p) => p.countryCode)).size || countries;
+  const shelterCount = new Set(all.items.map((p) => p.shelter.id)).size || shelterIds;
+
+  const photoUrls = items.slice(0, 3).map((p) => ({
+    src: p.media[0]?.url ?? "",
+    alt: p.media[0]?.altText ?? p.name,
+  }));
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
-      <div className="max-w-xl text-center">
-        <Reveal>
-          <p className="mb-3 text-sm font-medium tracking-wide text-muted uppercase">
-            Phase 0–2 · Foundation + Explore
-          </p>
-        </Reveal>
-        <Reveal delay={0.08}>
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+    <div className="min-h-full">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
             {siteConfig.name}
-          </h1>
-        </Reveal>
-        <Reveal delay={0.16}>
-          <p className="mt-4 text-lg leading-relaxed text-muted">
-            {siteConfig.description}
-          </p>
-        </Reveal>
-        <Reveal delay={0.24}>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/explore"
-              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              Explore animals
-            </Link>
-            <Link
-              href="/tokens"
-              className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Design tokens
-            </Link>
-            <Link
-              href="/ui"
-              className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
-            >
-              UI kit
-            </Link>
-          </div>
-        </Reveal>
-
-        <div className="mt-10 flex justify-center">
-          <MotionToggle />
+          </Link>
+          <Link
+            href="/explore"
+            className="text-sm font-medium text-muted hover:text-foreground"
+          >
+            Explore
+          </Link>
         </div>
-      </div>
-    </main>
+      </header>
+
+      <main>
+        <Hero photoUrls={photoUrls} />
+        <StoryBeats />
+        <Stats
+          animals={animalCount}
+          shelters={shelterCount}
+          countries={countryCount}
+        />
+        <CardPeek posts={items} />
+        <IntroFooter />
+      </main>
+    </div>
   );
 }
