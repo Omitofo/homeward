@@ -34,6 +34,14 @@ Why: better decisions once real screens exist. Constraints in doc 04 still apply
 **D-010 — Location v1: structured country + free-text region/city (no geocoding)** · Proposed default
 Why: simple and works globally. Radius/map search is a later enhancement.
 
+**D-011 — Typeface: Plus Jakarta Sans (UI) + Geist Mono (code)** · Accepted · 2026-09-21
+Why: warm, modern, highly legible at small sizes, distinctive without being quirky. Variable, self-hosted via `next/font`, excellent Latin support. Geist Mono kept for rare code/mono needs.
+Alternatives considered: Inter (too generic), DM Sans, Figtree, Satoshi.
+
+**D-012 — Color system: warm neutrals + teal primary + amber verified** · Accepted · 2026-09-21
+Why: Photos of animals carry the emotional color; UI stays quiet and trustworthy. Teal (#0d9488) feels calm and nature-adjacent without the overused "pet green". Amber (#f59e0b) is reserved exclusively for the Verified badge so it stays recognizable. Full token set (including dark theme) lives in `src/styles/tokens.css`.
+Alternatives: coral/rose primary (more "heart" but noisier against photos), soft indigo, pure neutral + one accent.
+
 ## Open questions for the owner (answer any time; defaults above apply until then)
 1. **Project name** (Homeward is a placeholder) and rough brand feeling (playful, calm, editorial?).
 2. **Can shelters publish before being verified?** Default: yes, without the badge, and a "Verified only" filter exists. Alternative: posting requires verification.
