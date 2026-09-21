@@ -1,19 +1,18 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-21 (P4-03 share)
-**Current phase:** Phase 4 — Engagement
-**Next task:** Smoke-test Share on post detail; merge `feat/p4-share`; then P4-04 saved searches or seed real data
-**Repo status:** Likes + comments merged. Share on branch. Mock still default.
+**Last updated:** 2026-09-21 (P4-04 saved searches)
+**Current phase:** Phase 4 — Engagement (wrapping)
+**Next task:** Run saved_searches migration; smoke-test; merge `feat/p4-saved-searches`
+**Repo status:** Likes, comments, share merged. Saved searches on branch. Mock still default.
 
 ## Current task table
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P4-01 | Likes | ✅ | PR #18 |
-| P4-02 | Comments | ✅ | PR #19 |
-| P4-03 | Share | 🟨 | Branch `feat/p4-share` |
-| P4-04 | Saved searches | ⬜ | |
+| P4-01 | Likes | ✅ | #18 |
+| P4-02 | Comments | ✅ | #19 |
+| P4-03 | Share | ✅ | #20 |
+| P4-04 | Saved searches | 🟨 | Branch `feat/p4-saved-searches` |
 
-## Session log (append newest at top)
-- **2026-09-21 P4-03 share:** Web Share API + clipboard fallback on post detail. Public (no auth).
-- **2026-09-21 P4-02 merged:** Comments (#19).
-- **2026-09-21 P4-01 merged:** Likes (#18).
+## Session log
+- **2026-09-21 P4-04:** Migration, save from explore, list on /me, mock localStorage.
+- **2026-09-21:** Share #20, comments #19, likes #18 merged.
