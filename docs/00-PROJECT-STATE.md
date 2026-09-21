@@ -1,9 +1,9 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-21 (P3-04 AuthSheet)
-**Current phase:** Phase 3 — Backend & auth
-**Next task:** Merge `feat/p3-auth-sheet`; smoke-test gated CTAs on post detail; then either seed real data or start Phase 4 likes
-**Repo status:** P3-03 auth merged (#16). P3-04 AuthSheet + intent return on branch. Mock still default.
+**Last updated:** 2026-09-21 (P4-01 likes)
+**Current phase:** Phase 4 — Engagement (started)
+**Next task:** Apply likes migration in Supabase SQL editor; smoke-test Like on post detail; merge `feat/p4-likes`
+**Repo status:** P3 auth complete (#16, #17). Likes on branch with migration + optimistic UI. Mock still default.
 
 ## Phase overview
 | Phase | Name | Goal | Status |
@@ -11,8 +11,8 @@
 | 0 | Foundation | Scaffold, tooling, tokens, motion infrastructure, CI | 🟨 Almost done (Husky + CI optional) |
 | 1 | Intro showpiece | Cinematic landing page with GSAP | 🟨 Hero + story + stats shipped; pin/scrub optional |
 | 2 | Explore (mock data) | Feed, filters, cards, carousel, shelter profile | ✅ Done |
-| 3 | Backend & auth | Supabase, roles, RLS, swap mock for real data | 🟨 Auth done; AuthSheet in progress |
-| 4 | Engagement | Likes, comments, share, saved searches | ⬜ Not started |
+| 3 | Backend & auth | Supabase, roles, RLS, swap mock for real data | ✅ Auth + AuthSheet done |
+| 4 | Engagement | Likes, comments, share, saved searches | 🟨 Likes in progress |
 | 5 | Shelter studio | Upload, profile editing, verification + admin | ⬜ Not started |
 | 6 | Chat | Realtime adopter <-> shelter messaging | ⬜ Not started |
 | 7 | Polish & launch | A11y, perf, security audit, deploy | ⬜ Not started |
@@ -20,22 +20,19 @@
 ## Current task table
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P1-01 / P1-02 / P1-04 | Intro concept + hero + peek | ✅ | Merged PR #14 |
-| P1-03 | Pin/scrub story | ⬜ | Optional |
-| P3-01 | Supabase schema + RLS migrations | ✅ | Applied on owner project |
-| P3-02 | Supabase repository implementations | 🟨 | posts + shelters repos; mock still default |
-| P3-03 | Auth magic link + roles | ✅ | Merged PR #16 |
-| P3-04 | Auth sheet + intent return | 🟨 | Branch `feat/p3-auth-sheet` |
+| P3-03 | Auth magic link + roles | ✅ | PR #16 |
+| P3-04 | Auth sheet + intent return | ✅ | PR #17 |
+| P4-01 | Likes (optimistic + burst) | 🟨 | Branch `feat/p4-likes` — run migration |
+| P4-02 | Comments | ⬜ | |
+| P4-03 | Share | ⬜ | |
+| P4-04 | Saved searches | ⬜ | |
 
 ## Session log (append newest at top)
-- **2026-09-21 P3-04 AuthSheet:** Bottom-sheet conversion gate on post detail (Like / Contact / Save). Intent stored in sessionStorage; resume banner after magic link. Real mutations still Phase 4/6.
-- **2026-09-21 P3-03 merged:** Magic-link auth verified by owner (adopter + shelter + guards). PR #16 squash-merged.
-- **2026-09-21 owner wiring:** Env keys + migration applied; `USE_MOCK_DATA=true` kept.
-- **2026-09-21 Supabase scaffold:** Migration, clients, repos. Mock default.
-- **2026-09-21 intro hero:** Merged PR #14.
-- **2026-09-21 Phase 2 complete:** empty/SEO, feed motion, filter sheet, infinite scroll.
+- **2026-09-21 P4-01 likes:** Migration (likes + count triggers), server toggle, LikeButton optimistic + GSAP burst, AuthSheet gate. Mock mode persists hearts in localStorage.
+- **2026-09-21 P3-04 merged:** AuthSheet intent return (#17).
+- **2026-09-21 P3-03 merged:** Magic-link auth (#16), verified by owner.
 
 ## What the next session should do
-1. Merge `feat/p3-auth-sheet` after smoke test.
-2. Optional: seed one shelter + posts and try `USE_MOCK_DATA=false`.
-3. Or start P4-01 likes (optimistic + AuthSheet already gates visitors).
+1. Supabase SQL editor → run `supabase/migrations/20260921190000_likes.sql`.
+2. Pull `feat/p4-likes`, test Like signed-out (sheet) and signed-in (toggle + count).
+3. Merge when green; next is P4-02 comments or seed real data.

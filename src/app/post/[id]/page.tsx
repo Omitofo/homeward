@@ -6,6 +6,7 @@ import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { PostGallery } from "@/features/posts/PostGallery";
 import { PostActions } from "@/features/posts/PostActions";
 import { getCurrentProfile, IntentResume } from "@/features/auth";
+import { getLikedByMe } from "@/features/engagement";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
@@ -86,6 +87,7 @@ export default async function PostDetailPage({ params }: Props) {
   }
 
   const signedIn = profile !== null;
+  const initialLiked = signedIn ? await getLikedByMe(post.id) : false;
 
   return (
     <div className="min-h-full">
@@ -130,12 +132,10 @@ export default async function PostDetailPage({ params }: Props) {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          {/* Gallery */}
           <div className="lg:sticky lg:top-20 lg:self-start">
             <PostGallery media={post.media} name={post.name} />
           </div>
 
-          {/* Details */}
           <div className="flex flex-col gap-6">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -186,7 +186,6 @@ export default async function PostDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Stats */}
             <div className="flex gap-6 text-sm text-muted">
               <span>{post.likeCount} likes</span>
               <span>{post.commentCount} comments</span>
@@ -204,9 +203,12 @@ export default async function PostDetailPage({ params }: Props) {
               postId={post.id}
               status={post.status}
               signedIn={signedIn}
+              likeCount={post.likeCount}
+              initialLiked={initialLiked}
+              userId={profile?.id}
+              role={profile?.role}
             />
 
-            {/* Shelter card */}
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md"
