@@ -1,9 +1,9 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-21 (UI primitives session)
+**Last updated:** 2026-09-21 (mock data session)
 **Current phase:** Phase 0 — Foundation
-**Next task:** `P0-06` Mock data + repository interfaces (or finish P0-02 Husky / P0-07 CI)
-**Repo status:** Scaffold + tokens + motion + UI primitives live.
+**Next task:** `P0-07` CI, or start Phase 1 / Phase 2 explore feed
+**Repo status:** Scaffold + tokens + motion + UI primitives + mock data live.
 
 ## Phase overview
 | Phase | Name | Goal | Status |
@@ -26,18 +26,19 @@ Full backlog with dependencies is in `09-ROADMAP.md`. Only the active window is 
 |----|------|--------|-------|
 | P0-01 | Scaffold Next.js + TS strict + Tailwind, folder structure per doc 03 | ✅ | Merged |
 | P0-02 | ESLint, Prettier, Husky/lint-staged, commit rules | 🟨 | ESLint + Prettier done. Husky/commitlint still TODO |
-| P0-03 | Design tokens (color, type, spacing, radius, motion) | ✅ | Merged. Preview at `/tokens` |
-| P0-04 | Motion infrastructure | ✅ | Merged. GSAP + preference + Reveal + toggle |
-| P0-05 | Base UI primitives (Button, Chip, Badge, Sheet, Skeleton) | ✅ | Button, Chip, Badge, Avatar, Input, Skeleton, Sheet. Preview at `/ui` |
-| P0-06 | Mock data + repository interfaces | ⬜ | ~40 animals, ~8 shelters, real-looking copy |
+| P0-03 | Design tokens | ✅ | Merged |
+| P0-04 | Motion infrastructure | ✅ | Merged |
+| P0-05 | Base UI primitives | ✅ | Merged. Preview at `/ui` |
+| P0-06 | Mock data + repository interfaces | ✅ | 40 animals, 8 shelters, filterable repos |
 | P0-07 | CI (lint, typecheck, test, build) | ⬜ | |
 
 ## Decisions pending the owner
 See "Open questions" in `10-DECISIONS.md`. Defaults are chosen so work is never blocked.
 
 ## Session log (append newest at top, keep to one or two lines each)
-- **2026-09-21 ui:** P0-05 complete on `feat/p0-05-ui-primitives`. Button, Chip, Badge, Avatar, Input, Skeleton, Sheet + `/ui` preview.
-- **2026-09-21 motion:** P0-04 merged. Fixed useMotionPreference.tsx extension issue.
+- **2026-09-21 mock:** P0-06 complete on `feat/p0-06-mock-data`. 40 animals, 8 shelters, posts + shelters repositories with filters and cursor pagination.
+- **2026-09-21 ui:** P0-05 merged.
+- **2026-09-21 motion:** P0-04 merged.
 - **2026-09-21 tokens:** P0-03 merged.
 - **2026-09-21 scaffold:** P0-01 merged.
 - **Planning session 1:** Master plan created.
@@ -46,6 +47,5 @@ See "Open questions" in `10-DECISIONS.md`. Defaults are chosen so work is never 
 _None yet._
 
 ## What the next session should do
-1. Merge `feat/p0-05-ui-primitives`.
-2. P0-06 Mock data + repository interfaces — unlocks the explore feed.
-3. Or finish P0-02 / P0-07 tooling if preferred first.
+1. Merge `feat/p0-06-mock-data`.
+2. Optionally P0-07 CI, or jump to Phase 2 explore feed (P2-01 filters + P2-02 feed grid) — the foundation is ready.
