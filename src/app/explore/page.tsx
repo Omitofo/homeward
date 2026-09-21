@@ -5,10 +5,19 @@ import { parseFeedFilters, toDomainFilters } from "@/features/filters/schema";
 import { FilterBar } from "@/features/filters/FilterBar";
 import { FeedInfinite } from "@/features/feed/FeedInfinite";
 import { MotionToggle } from "@/motion/components/MotionToggle";
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Explore",
-  description: "Browse animals looking for a home.",
+  description: "Browse animals looking for a home from verified rescue centers.",
+  openGraph: {
+    title: `Explore · ${siteConfig.name}`,
+    description: "Browse animals looking for a home from verified rescue centers.",
+    url: `${siteConfig.url}/explore`,
+  },
+  alternates: {
+    canonical: "/explore",
+  },
 };
 
 const PAGE_SIZE = 12;
