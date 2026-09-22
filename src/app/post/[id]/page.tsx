@@ -218,6 +218,7 @@ export default async function PostDetailPage({ params }: Props) {
               initialLiked={initialLiked}
               userId={profile?.id}
               role={profile?.role}
+              shelterId={post.shelter.id}
               shareTitle={shareTitle}
               shareUrl={shareUrl}
               shareText={shareText}

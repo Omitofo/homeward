@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
+import { StartChatButton } from "@/features/chat";
 import { LikeButton, ShareButton } from "@/features/engagement";
 import { ReportButton } from "@/features/moderation";
 import type { PostStatus, Role } from "@/types/domain";
@@ -17,14 +18,13 @@ type Props = {
   initialLiked?: boolean;
   userId?: string | null;
   role?: Role | null;
+  /** public.shelters.id */
+  shelterId?: string | null;
   shareTitle: string;
   shareUrl: string;
   shareText?: string;
 };
 
-/**
- * Contact / Like / Share / Save / Report on the post detail page.
- */
 export function PostActions({
   postId,
   status,
@@ -33,6 +33,7 @@ export function PostActions({
   initialLiked = false,
   userId,
   role,
+  shelterId,
   shareTitle,
   shareUrl,
   shareText,
@@ -43,6 +44,7 @@ export function PostActions({
   const [notice, setNotice] = useState<string | null>(null);
 
   const canLike = role !== "shelter";
+  const canStartChat = role !== "shelter";
 
   function gateOrRun(type: AuthIntent["type"], whenSignedIn: () => void) {
     if (signedIn) {
@@ -61,23 +63,31 @@ export function PostActions({
     <>
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start gap-3">
-          <Button
-            size="lg"
-            disabled={status !== "available" && signedIn}
-            onClick={() =>
-              gateOrRun("contact", () =>
-                setNotice(
-                  "Chat with shelters ships in a later phase. You're signed in and ready when it lands.",
-                ),
-              )
-            }
-          >
-            {status === "available"
-              ? "Contact shelter"
-              : status === "reserved"
-                ? "Currently reserved"
-                : "Already adopted"}
-          </Button>
+          {shelterId && canStartChat ? (
+            <StartChatButton
+              shelterId={shelterId}
+              postId={postId}
+              signedIn={signedIn}
+              disabled={status !== "available"}
+              label={
+                status === "available"
+                  ? "Contact shelter"
+                  : status === "reserved"
+                    ? "Currently reserved"
+                    : "Already adopted"
+              }
+            />
+          ) : (
+            <Button size="lg" disabled>
+              {status === "available"
+                ? role === "shelter"
+                  ? "Shelters reply in Messages"
+                  : "Contact shelter"
+                : status === "reserved"
+                  ? "Currently reserved"
+                  : "Already adopted"}
+            </Button>
+          )}
 
           <LikeButton
             postId={postId}
