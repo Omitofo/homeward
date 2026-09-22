@@ -22,7 +22,7 @@ export default async function MePage() {
   const saved = await listSavedSearches();
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-12">
+    <main id="main-content" className="mx-auto max-w-lg px-4 py-12">
       <div className="mb-8 flex items-center justify-between">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           {siteConfig.name}
@@ -62,6 +62,6 @@ export default async function MePage() {
           ← Back to explore
         </Link>
       </p>
-    </div>
+    </main>
   );
 }

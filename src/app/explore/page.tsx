@@ -80,7 +80,7 @@ export default async function ExplorePage({ searchParams }: Props) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main id="main-content" className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6 space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>

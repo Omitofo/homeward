@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import Image from "next/image";
 import type { PostMedia } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
@@ -14,6 +14,7 @@ export function PostGallery({ media, name }: Props) {
   const sorted = [...media].sort((a, b) => a.position - b.position);
   const [index, setIndex] = useState(0);
   const count = sorted.length;
+  const statusId = useId();
 
   const go = useCallback(
     (delta: number) => {
@@ -44,7 +45,12 @@ export function PostGallery({ media, name }: Props) {
   const current = sorted[index]!;
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      role="group"
+      aria-roledescription="carousel"
+      aria-label={`${name} photos`}
+    >
       <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary">
         <Image
           src={current.url}
@@ -55,12 +61,16 @@ export function PostGallery({ media, name }: Props) {
           priority={index === 0}
         />
 
+        <span id={statusId} className="sr-only" aria-live="polite" aria-atomic="true">
+          Photo {index + 1} of {count}
+        </span>
+
         {count > 1 && (
           <>
             <button
               type="button"
               onClick={() => go(-1)}
-              className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Previous photo"
             >
               ‹
@@ -68,7 +78,7 @@ export function PostGallery({ media, name }: Props) {
             <button
               type="button"
               onClick={() => go(1)}
-              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Next photo"
             >
               ›
@@ -77,18 +87,22 @@ export function PostGallery({ media, name }: Props) {
         )}
 
         {count > 1 && (
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+          <div
+            className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5"
+            role="tablist"
+            aria-label="Photo pagination"
+          >
             {sorted.map((_, i) => (
               <button
                 key={sorted[i]!.id}
                 type="button"
                 onClick={() => setIndex(i)}
                 className={cn(
-                  "h-1.5 rounded-full transition-all",
-                  i === index ? "w-4 bg-primary" : "w-1.5 bg-background/70",
+                  "h-2.5 min-w-2.5 rounded-full transition-all",
+                  i === index ? "w-4 bg-primary" : "w-2.5 bg-background/70",
                 )}
-                aria-label={`Photo ${i + 1}`}
-                aria-current={i === index}
+                aria-label={`Photo ${i + 1} of ${count}`}
+                aria-current={i === index ? "true" : undefined}
               />
             ))}
           </div>
@@ -96,7 +110,7 @@ export function PostGallery({ media, name }: Props) {
       </div>
 
       {count > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1" role="list">
           {sorted.map((m, i) => (
             <button
               key={m.id}
@@ -104,12 +118,16 @@ export function PostGallery({ media, name }: Props) {
               onClick={() => setIndex(i)}
               className={cn(
                 "relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-opacity",
-                i === index ? "border-primary opacity-100" : "border-transparent opacity-70 hover:opacity-100",
+                i === index
+                  ? "border-primary opacity-100"
+                  : "border-transparent opacity-70 hover:opacity-100",
               )}
+              aria-label={`${m.altText || `${name} photo ${i + 1}`} (${i + 1} of ${count})`}
+              aria-current={i === index ? "true" : undefined}
             >
               <Image
                 src={m.url}
-                alt={m.altText}
+                alt=""
                 fill
                 sizes="64px"
                 className="object-cover"

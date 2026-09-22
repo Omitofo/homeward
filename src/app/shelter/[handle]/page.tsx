@@ -91,7 +91,7 @@ export default async function ShelterProfilePage({ params }: Props) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-5xl px-4 py-8">
         <section className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start">
           <Avatar
             name={shelter.orgName}

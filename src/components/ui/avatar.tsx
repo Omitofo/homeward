@@ -33,6 +33,8 @@ export function Avatar({
   size = "md",
   className,
 }: AvatarProps) {
+  const label = alt || name || "Avatar";
+
   return (
     <span
       className={cn(
@@ -40,12 +42,14 @@ export function Avatar({
         sizeClasses[size],
         className,
       )}
+      role="img"
+      aria-label={label}
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
-          alt={alt || name || "Avatar"}
+          alt=""
           className="h-full w-full object-cover"
         />
       ) : (

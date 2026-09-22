@@ -137,7 +137,7 @@ export default async function PostDetailPage({ params }: Props) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <main id="main-content" className="mx-auto max-w-5xl px-4 py-6">
         <div className="mb-6">
           <IntentResume signedIn={signedIn} />
         </div>

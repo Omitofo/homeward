@@ -56,6 +56,9 @@ export default function RootLayout({
       data-motion="full"
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <MotionRoot>{children}</MotionRoot>
       </body>
     </html>
