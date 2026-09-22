@@ -54,7 +54,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      <main>
+      <main id="main-content">
         <Hero photoUrls={photoUrls} />
         <StoryBeats />
         <Stats
