@@ -4,7 +4,8 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { submitVerificationRequest } from "./actions";
-import { uploadVerificationDoc, MAX_DOC_BYTES } from "./upload";
+import { MAX_DOC_BYTES } from "./constants";
+import { uploadVerificationDoc } from "./upload";
 import type { VerificationDocInput } from "./schema";
 
 export function VerificationRequestForm() {
