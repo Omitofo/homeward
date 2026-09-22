@@ -32,7 +32,9 @@ export function updateMockVerificationRequest(
 ): VerificationRequest | null {
   const idx = requests.findIndex((r) => r.id === id);
   if (idx < 0) return null;
-  const next = { ...requests[idx], ...patch };
+  const current = requests[idx];
+  if (!current) return null;
+  const next: VerificationRequest = { ...current, ...patch };
   requests[idx] = next;
   return next;
 }

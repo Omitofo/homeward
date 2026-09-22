@@ -27,10 +27,11 @@ export const feedFiltersSchema = z.object({
   country: z.string().trim().length(2).optional(),
   region: z.string().trim().max(80).optional(),
   city: z.string().trim().max(80).optional(),
+  // undefined when not in URL; true when present
   verified: z
     .enum(["1", "true", "yes"])
     .optional()
-    .transform((v) => Boolean(v)),
+    .transform((v): true | undefined => (v ? true : undefined)),
 });
 
 export type FeedFiltersInput = z.input<typeof feedFiltersSchema>;

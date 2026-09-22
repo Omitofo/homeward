@@ -17,7 +17,9 @@ export function ImageUploadSmoke() {
     if (!fileList?.length) return;
     setError(null);
 
-    const file = fileList[0];
+    const file = fileList.item(0);
+    if (!file) return;
+
     if (file.size > MAX_UPLOAD_BYTES) {
       setError(`File too large (max ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB)`);
       return;
