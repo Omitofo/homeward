@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui";
 import { requireShelterContext, StudioNav } from "@/features/studio";
+import { ImageUploadSmoke } from "@/features/posts/upload/ImageUploadSmoke";
 
 export const metadata: Metadata = {
   title: "New post · Studio",
@@ -32,21 +33,28 @@ export default async function StudioNewPage() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">New post</h1>
         <p className="mt-1 text-sm text-muted">
-          Composer lands in P5-02 (images + animal details). This route is the
-          placeholder so navigation and guards are already in place.
+          Image upload pipeline (P5-01). Full animal form lands in P5-02.
         </p>
 
-        <div className="mt-8 rounded-lg border border-dashed border-border bg-card px-6 py-12 text-center">
-          <p className="text-sm text-muted">
-            Upload pipeline (P5-01) and composer form (P5-02) come next.
+        <section className="mt-8 rounded-lg border border-border bg-card px-4 py-6 sm:px-6">
+          <h2 className="text-sm font-medium">Photos</h2>
+          <p className="mt-1 text-xs text-muted">
+            Try one image — validated by magic bytes, re-encoded to WebP with
+            EXIF stripped, stored under your shelter path.
           </p>
+          <div className="mt-4">
+            <ImageUploadSmoke />
+          </div>
+        </section>
+
+        <p className="mt-6 text-sm">
           <Link
             href="/studio"
-            className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
+            className="font-medium text-primary hover:underline"
           >
             ← Back to posts
           </Link>
-        </div>
+        </p>
       </main>
     </>
   );
