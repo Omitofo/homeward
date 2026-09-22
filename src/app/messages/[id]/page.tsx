@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/features/auth";
-import {
-  getConversationMessages,
-  MessageComposer,
-} from "@/features/chat";
+import { getConversationMessages, ChatThread } from "@/features/chat";
 
 export const metadata: Metadata = {
   title: "Chat",
@@ -23,7 +20,10 @@ export default async function ConversationPage({ params }: Props) {
 
   const result = await getConversationMessages(id);
   if (!result.ok) {
-    if (result.error === "Conversation not found" || result.error === "Access denied") {
+    if (
+      result.error === "Conversation not found" ||
+      result.error === "Access denied"
+    ) {
       notFound();
     }
     return (
@@ -68,38 +68,11 @@ export default async function ConversationPage({ params }: Props) {
         person. Homeward does not process payments.
       </div>
 
-      <ul className="flex flex-1 flex-col gap-3 overflow-y-auto pb-4">
-        {messages.length === 0 ? (
-          <li className="text-sm text-muted">No messages yet. Say hello.</li>
-        ) : null}
-        {messages.map((m) => {
-          const mine = m.senderId === profile.id;
-          return (
-            <li
-              key={m.id}
-              className={
-                mine
-                  ? "ml-8 self-end rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground"
-                  : "mr-8 self-start rounded-lg border border-border bg-card px-3 py-2 text-sm"
-              }
-            >
-              <p className="whitespace-pre-wrap">{m.body}</p>
-              <time
-                className={
-                  mine
-                    ? "mt-1 block text-[10px] opacity-80"
-                    : "mt-1 block text-[10px] text-muted"
-                }
-                dateTime={m.createdAt}
-              >
-                {new Date(m.createdAt).toLocaleString()}
-              </time>
-            </li>
-          );
-        })}
-      </ul>
-
-      <MessageComposer conversationId={id} />
+      <ChatThread
+        conversationId={id}
+        initialMessages={messages}
+        currentUserId={profile.id}
+      />
     </main>
   );
 }

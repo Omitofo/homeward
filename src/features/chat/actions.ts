@@ -22,14 +22,12 @@ import {
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
 
-/** Resolve shelter org → owning profile id. */
 async function resolveShelterProfileId(
   shelterId: string,
 ): Promise<{ profileId: string; orgName: string } | null> {
   if (useMock) {
     const s = mockShelters.find((x) => x.id === shelterId);
     if (!s) return null;
-    // Mock: use a deterministic pseudo profile id derived from shelter id
     return { profileId: `profile-${shelterId}`, orgName: s.orgName };
   }
 
@@ -326,7 +324,9 @@ export async function startConversation(
 
 export async function sendMessage(
   raw: unknown,
-): Promise<ActionResult<{ id: string }>> {
+): Promise<
+  ActionResult<{ id: string; senderId: string; createdAt: string }>
+> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
 
@@ -336,6 +336,7 @@ export async function sendMessage(
   }
 
   const { conversationId, body } = parsed.data;
+  const now = new Date().toISOString();
 
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
@@ -345,13 +346,16 @@ export async function sendMessage(
       conversationId,
       senderId: profile.id,
       body,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
       readAt: null,
     };
     appendMockMessage(conversationId, msg, body.slice(0, 120));
     revalidatePath(`/messages/${conversationId}`);
     revalidatePath("/messages");
-    return { ok: true, data: { id: msg.id } };
+    return {
+      ok: true,
+      data: { id: msg.id, senderId: profile.id, createdAt: now },
+    };
   }
 
   const supabase = await createClient();
@@ -364,7 +368,7 @@ export async function sendMessage(
       sender_id: profile.id,
       body,
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (error || !data) {
@@ -374,5 +378,12 @@ export async function sendMessage(
 
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
-  return { ok: true, data: { id: data.id } };
+  return {
+    ok: true,
+    data: {
+      id: data.id,
+      senderId: profile.id,
+      createdAt: data.created_at,
+    },
+  };
 }
