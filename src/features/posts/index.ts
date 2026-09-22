@@ -11,3 +11,4 @@ export const postsRepository: PostsRepository = useMock
 
 export type { PostsRepository, ListPostsParams } from "./repository";
 export { uploadAnimalImage, type UploadedMedia } from "./upload/actions";
+export { PostComposer, createAnimalPost, updateAnimalPost } from "./composer";

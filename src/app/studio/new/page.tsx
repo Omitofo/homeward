@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui";
+import { PostComposer } from "@/features/posts/composer";
 import { requireShelterContext, StudioNav } from "@/features/studio";
-import { ImageUploadSmoke } from "@/features/posts/upload/ImageUploadSmoke";
 
 export const metadata: Metadata = {
   title: "New post · Studio",
@@ -33,21 +33,21 @@ export default async function StudioNewPage() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">New post</h1>
         <p className="mt-1 text-sm text-muted">
-          Image upload pipeline (P5-01). Full animal form lands in P5-02.
+          Add photos and details. Adopters will see this on Explore.
         </p>
 
-        <section className="mt-8 rounded-lg border border-border bg-card px-4 py-6 sm:px-6">
-          <h2 className="text-sm font-medium">Photos</h2>
-          <p className="mt-1 text-xs text-muted">
-            Try one image — validated by magic bytes, re-encoded to WebP with
-            EXIF stripped, stored under your shelter path.
-          </p>
-          <div className="mt-4">
-            <ImageUploadSmoke />
-          </div>
-        </section>
+        <div className="mt-8">
+          <PostComposer
+            mode="create"
+            defaults={{
+              countryCode: ctx.shelter.countryCode,
+              region: ctx.shelter.region,
+              city: ctx.shelter.city,
+            }}
+          />
+        </div>
 
-        <p className="mt-6 text-sm">
+        <p className="mt-8 text-sm">
           <Link
             href="/studio"
             className="font-medium text-primary hover:underline"

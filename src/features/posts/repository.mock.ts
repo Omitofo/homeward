@@ -1,6 +1,11 @@
 import { mockAnimals } from "@/data/mock/animals";
 import type { AnimalPost, CursorPage, FeedFilters } from "@/types/domain";
 import type { ListPostsParams, PostsRepository } from "./repository";
+import {
+  getMockCreatedById,
+  getMockCreatedPosts,
+  listMockCreatedByShelter,
+} from "./composer/mock-store";
 
 function matchesFilters(post: AnimalPost, filters?: FeedFilters): boolean {
   if (!filters) return post.status !== "archived";
@@ -37,9 +42,16 @@ function sortByNewest(a: AnimalPost, b: AnimalPost) {
   return b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
 }
 
+function allPosts(): AnimalPost[] {
+  const created = getMockCreatedPosts();
+  // Created posts override seed by id if ever colliding
+  const ids = new Set(created.map((p) => p.id));
+  return [...created, ...mockAnimals.filter((p) => !ids.has(p.id))];
+}
+
 export const mockPostsRepository: PostsRepository = {
   async list({ filters, cursor, limit = 12 }: ListPostsParams = {}): Promise<CursorPage<AnimalPost>> {
-    const filtered = mockAnimals.filter((p) => matchesFilters(p, filters)).sort(sortByNewest);
+    const filtered = allPosts().filter((p) => matchesFilters(p, filters)).sort(sortByNewest);
 
     let start = 0;
     if (cursor) {
@@ -54,12 +66,15 @@ export const mockPostsRepository: PostsRepository = {
   },
 
   async getById(id: string): Promise<AnimalPost | null> {
-    return mockAnimals.find((p) => p.id === id) ?? null;
+    return getMockCreatedById(id) ?? mockAnimals.find((p) => p.id === id) ?? null;
   },
 
   async listByShelter(shelterId: string): Promise<AnimalPost[]> {
-    return mockAnimals
-      .filter((p) => p.shelter.id === shelterId && p.status !== "archived")
-      .sort(sortByNewest);
+    const created = listMockCreatedByShelter(shelterId);
+    const seeded = mockAnimals.filter(
+      (p) => p.shelter.id === shelterId && p.status !== "archived",
+    );
+    const ids = new Set(created.map((p) => p.id));
+    return [...created, ...seeded.filter((p) => !ids.has(p.id))].sort(sortByNewest);
   },
 };
