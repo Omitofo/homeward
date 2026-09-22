@@ -133,7 +133,7 @@ export function CommentSection({
         Comments · {count}
       </h2>
 
-      <ul className="space-y-4">
+      <ul className="space-y-4" aria-live="polite" aria-relevant="additions removals">
         {comments.length === 0 && (
           <li className="text-sm text-muted">No comments yet. Be the first.</li>
         )}
@@ -159,6 +159,7 @@ export function CommentSection({
                     className="text-xs text-muted hover:text-danger"
                     disabled={pending}
                     onClick={() => onDelete(c.id)}
+                    aria-label={`Delete comment by ${c.displayName}`}
                   >
                     Delete
                   </button>
@@ -195,7 +196,9 @@ export function CommentSection({
           className="w-full resize-y rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         <div className="flex items-center justify-between gap-3">
-          <span className="text-xs text-muted">{body.length}/1000</span>
+          <span className="text-xs text-muted" aria-live="polite">
+            {body.length}/1000
+          </span>
           <Button type="submit" size="sm" disabled={pending || !body.trim()}>
             {pending ? "Posting…" : signedIn ? "Post comment" : "Sign in to post"}
           </Button>

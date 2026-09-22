@@ -17,7 +17,7 @@ export default async function StudioNewPage() {
     return (
       <>
         <StudioNav pathname="/studio/new" />
-        <main className="mx-auto max-w-3xl px-4 py-10">
+        <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
           <EmptyState
             title="Studio is for rescue accounts"
             description="Register as a shelter to create posts."
@@ -30,7 +30,7 @@ export default async function StudioNewPage() {
   return (
     <>
       <StudioNav pathname="/studio/new" orgName={ctx.shelter.orgName} />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">New post</h1>
         <p className="mt-1 text-sm text-muted">
           Add photos and details. Adopters will see this on Explore.

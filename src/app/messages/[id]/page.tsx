@@ -27,8 +27,10 @@ export default async function ConversationPage({ params }: Props) {
       notFound();
     }
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8">
-        <p className="text-sm text-danger">{result.error}</p>
+      <main id="main-content" className="mx-auto max-w-2xl px-4 py-8">
+        <p className="text-sm text-danger" role="alert">
+          {result.error}
+        </p>
       </main>
     );
   }
@@ -36,7 +38,10 @@ export default async function ConversationPage({ params }: Props) {
   const { messages, peerName, postId } = result.data;
 
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-2xl flex-col px-4 py-6">
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-[70vh] max-w-2xl flex-col px-4 py-6"
+    >
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="text-sm">
@@ -72,6 +77,7 @@ export default async function ConversationPage({ params }: Props) {
         conversationId={id}
         initialMessages={messages}
         currentUserId={profile.id}
+        peerName={peerName}
       />
     </main>
   );

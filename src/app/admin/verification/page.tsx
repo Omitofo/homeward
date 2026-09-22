@@ -16,7 +16,7 @@ export default async function AdminVerificationPage() {
   const ctx = await requireAdminContext();
   if (!ctx) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
         <EmptyState
           title="Admins only"
           description="This queue is restricted to Homeward administrators."
@@ -34,7 +34,7 @@ export default async function AdminVerificationPage() {
   const queue = result.ok ? result.data : [];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           Verification queue
