@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Avatar, Button } from "@/components/ui";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
+import { ReportButton } from "@/features/moderation";
 import { addComment, deleteComment } from "./actions";
 import {
   appendLocalComment,
@@ -51,7 +52,6 @@ export function CommentSection({
   const [intent, setIntent] = useState<AuthIntent | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // Merge mock localStorage comments after mount
   useEffect(() => {
     const local = readLocalComments(postId);
     if (local.length === 0) return;
@@ -145,26 +145,33 @@ export function CommentSection({
                 <span className="text-sm font-medium text-foreground">
                   {c.displayName}
                 </span>
-                <time
-                  className="text-xs text-muted"
-                  dateTime={c.createdAt}
-                >
+                <time className="text-xs text-muted" dateTime={c.createdAt}>
                   {formatWhen(c.createdAt)}
                 </time>
               </div>
               <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
                 {c.body}
               </p>
-              {signedIn && userId === c.userId && (
-                <button
-                  type="button"
-                  className="mt-1 text-xs text-muted hover:text-danger"
-                  disabled={pending}
-                  onClick={() => onDelete(c.id)}
-                >
-                  Delete
-                </button>
-              )}
+              <div className="mt-1 flex flex-wrap gap-3">
+                {signedIn && userId === c.userId ? (
+                  <button
+                    type="button"
+                    className="text-xs text-muted hover:text-danger"
+                    disabled={pending}
+                    onClick={() => onDelete(c.id)}
+                  >
+                    Delete
+                  </button>
+                ) : null}
+                {userId !== c.userId ? (
+                  <ReportButton
+                    targetType="comment"
+                    targetId={c.id}
+                    signedIn={signedIn}
+                    returnTo={pathname || `/post/${postId}`}
+                  />
+                ) : null}
+              </div>
             </div>
           </li>
         ))}
