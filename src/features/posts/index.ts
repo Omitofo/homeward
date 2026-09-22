@@ -10,3 +10,4 @@ export const postsRepository: PostsRepository = useMock
   : supabasePostsRepository;
 
 export type { PostsRepository, ListPostsParams } from "./repository";
+export { uploadAnimalImage, type UploadedMedia } from "./upload/actions";
