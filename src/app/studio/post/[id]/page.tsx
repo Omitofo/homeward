@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Badge, EmptyState } from "@/components/ui";
+import { EmptyState } from "@/components/ui";
 import { postsRepository } from "@/features/posts";
+import { PostComposer } from "@/features/posts/composer";
+import { getMockCreatedById } from "@/features/posts/composer/mock-store";
 import { requireShelterContext, StudioNav } from "@/features/studio";
 
 export const metadata: Metadata = {
@@ -31,7 +33,10 @@ export default async function StudioEditPostPage({ params }: Props) {
     );
   }
 
-  const post = await postsRepository.getById(id);
+  // Prefer in-session mock creates, then repository (seeded mock / Supabase)
+  const post =
+    getMockCreatedById(id) ?? (await postsRepository.getById(id));
+
   if (!post || post.shelter.id !== ctx.shelter.id) {
     notFound();
   }
@@ -40,49 +45,18 @@ export default async function StudioEditPostPage({ params }: Props) {
     <>
       <StudioNav pathname="/studio" orgName={ctx.shelter.orgName} />
       <main className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-2 flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{post.name}</h1>
-          <Badge
-            variant={
-              post.status === "available"
-                ? "available"
-                : post.status === "reserved"
-                  ? "reserved"
-                  : post.status === "adopted"
-                    ? "adopted"
-                    : "neutral"
-            }
-            withDot
-          >
-            {post.status}
-          </Badge>
+        <div className="mb-1 flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Edit post</h1>
         </div>
         <p className="text-sm text-muted">
-          Edit form (status, details, images) lands with the composer in P5-02.
+          Update details, photos, or status for {post.name}.
         </p>
 
-        <dl className="mt-8 space-y-3 rounded-lg border border-border bg-card p-5 text-sm">
-          <div>
-            <dt className="text-muted">Species / breed</dt>
-            <dd className="font-medium">
-              {post.species} · {post.breed || "mixed"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted">Location</dt>
-            <dd className="font-medium">
-              {[post.city, post.region, post.countryCode]
-                .filter(Boolean)
-                .join(", ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted">Description</dt>
-            <dd className="mt-0.5 whitespace-pre-wrap">{post.description}</dd>
-          </div>
-        </dl>
+        <div className="mt-8">
+          <PostComposer mode="edit" initial={post} />
+        </div>
 
-        <p className="mt-6 flex flex-wrap gap-4 text-sm">
+        <p className="mt-8 flex flex-wrap gap-4 text-sm">
           <Link href="/studio" className="font-medium text-primary hover:underline">
             ← Back to posts
           </Link>
