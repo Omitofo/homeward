@@ -93,7 +93,12 @@ export default async function ExplorePage({ searchParams }: Props) {
               </p>
             </div>
           </div>
-          <FilterBar filters={parsed} />
+          <FilterBar
+            filters={parsed}
+            signedIn={profile !== null}
+            userId={profile?.id}
+            canSaveSearch={profile?.role !== "shelter"}
+          />
         </div>
 
         <FeedInfinite

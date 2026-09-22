@@ -8,3 +8,11 @@ export {
 } from "./comments/actions";
 export type { CommentItem } from "./comments/types";
 export { ShareButton } from "./share/ShareButton";
+export { SaveSearchButton } from "./saved-searches/SaveSearchButton";
+export { SavedSearchesList } from "./saved-searches/SavedSearchesList";
+export {
+  listSavedSearches,
+  saveSearch,
+  deleteSavedSearch,
+} from "./saved-searches/actions";
+export type { SavedSearch } from "./saved-searches/types";
