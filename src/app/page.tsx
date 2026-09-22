@@ -21,17 +21,12 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const { items } = await postsRepository.list({ limit: 8 });
+  // Single list call — reuse for hero, stats, and card peek
+  const { items, nextCursor } = await postsRepository.list({ limit: 40 });
 
-  // Rough mock aggregates for the stats strip
-  const countries = new Set(items.map((p) => p.countryCode)).size;
-  const shelterIds = new Set(items.map((p) => p.shelter.id)).size;
-
-  // Prefer a fuller list for counts when available
-  const all = await postsRepository.list({ limit: 40 });
-  const animalCount = all.items.length + (all.nextCursor ? 10 : 0);
-  const countryCount = new Set(all.items.map((p) => p.countryCode)).size || countries;
-  const shelterCount = new Set(all.items.map((p) => p.shelter.id)).size || shelterIds;
+  const animalCount = items.length + (nextCursor ? 10 : 0);
+  const countryCount = new Set(items.map((p) => p.countryCode)).size;
+  const shelterCount = new Set(items.map((p) => p.shelter.id)).size;
 
   const photoUrls = items.slice(0, 3).map((p) => ({
     src: p.media[0]?.url ?? "",
@@ -62,7 +57,7 @@ export default async function HomePage() {
           shelters={shelterCount}
           countries={countryCount}
         />
-        <CardPeek posts={items} />
+        <CardPeek posts={items.slice(0, 8)} />
         <IntroFooter />
       </main>
     </div>

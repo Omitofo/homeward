@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/motion/register";
@@ -147,11 +148,11 @@ export function Hero({ photoUrls }: HeroProps) {
           </div>
         </div>
 
-        {/* Photo stack */}
+        {/* Photo stack — first image is LCP candidate */}
         <div className="relative mx-auto flex h-72 w-full max-w-sm items-center justify-center sm:h-80 lg:h-96">
           {photoUrls.slice(0, 3).map((photo, i) => (
             <div
-              key={photo.src}
+              key={photo.src || i}
               data-hero-photo
               className="absolute overflow-hidden rounded-xl border border-border bg-card shadow-lg"
               style={{
@@ -163,13 +164,16 @@ export function Hero({ photoUrls }: HeroProps) {
                 top: `${8 + i * 6}%`,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.src}
-                alt={photo.alt}
-                className="h-full w-full object-cover"
-                loading={i === 0 ? "eager" : "lazy"}
-              />
+              {photo.src ? (
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  sizes="(max-width: 1024px) 70vw, 280px"
+                  className="object-cover"
+                  priority={i === 0}
+                />
+              ) : null}
             </div>
           ))}
         </div>
