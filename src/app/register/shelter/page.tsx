@@ -24,7 +24,7 @@ export default function ShelterRegisterPage() {
         </p>
       </div>
 
-      <MagicLinkForm mode="shelter" next="/me" />
+      <MagicLinkForm mode="shelter" next="/studio" />
 
       <p className="mt-6 text-center text-sm text-muted">
         Looking to adopt instead?{" "}
