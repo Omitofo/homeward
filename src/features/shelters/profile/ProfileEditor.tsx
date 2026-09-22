@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar, Button, Input } from "@/components/ui";
-import { MAX_UPLOAD_BYTES } from "@/lib/media";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/constants";
 import { uploadAnimalImage } from "@/features/posts/upload/actions";
 import type { Shelter } from "@/types/domain";
 import { updateShelterProfile } from "./actions";

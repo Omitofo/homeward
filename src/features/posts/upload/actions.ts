@@ -7,9 +7,9 @@ import { getShelterForProfile } from "@/features/shelters";
 import {
   ANIMAL_MEDIA_BUCKET,
   OUTPUT_EXT,
-  processAnimalImage,
   validateImageBytes,
 } from "@/lib/media";
+import { processAnimalImage } from "@/lib/media/process";
 import { createClient } from "@/lib/supabase/server";
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
