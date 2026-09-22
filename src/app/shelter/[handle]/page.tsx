@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sheltersRepository } from "@/features/shelters";
 import { postsRepository } from "@/features/posts";
-import { Avatar, Badge, Button, VerifiedBadge } from "@/components/ui";
+import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { FeedGrid } from "@/features/feed/FeedGrid";
 import { MotionToggle } from "@/motion/components/MotionToggle";
+import { getCurrentProfile } from "@/features/auth";
+import { StartChatButton } from "@/features/chat";
 import { siteConfig } from "@/config/site";
 import type { VerificationStatus } from "@/types/domain";
 
@@ -14,7 +16,7 @@ type Props = {
 };
 
 function verificationLabel(status: VerificationStatus) {
-  if (status === "verified") return null; // use VerifiedBadge
+  if (status === "verified") return null;
   if (status === "pending") return "Pending verification";
   if (status === "rejected") return "Not verified";
   return "Unverified";
@@ -55,7 +57,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ShelterProfilePage({ params }: Props) {
   const { handle } = await params;
-  const shelter = await sheltersRepository.getByHandle(handle);
+  const [shelter, profile] = await Promise.all([
+    sheltersRepository.getByHandle(handle),
+    getCurrentProfile(),
+  ]);
 
   if (!shelter) {
     notFound();
@@ -63,6 +68,8 @@ export default async function ShelterProfilePage({ params }: Props) {
 
   const animals = await postsRepository.listByShelter(shelter.id);
   const availableCount = animals.filter((a) => a.status === "available").length;
+  const signedIn = profile !== null;
+  const canMessage = profile?.role !== "shelter";
 
   return (
     <div className="min-h-full">
@@ -85,7 +92,6 @@ export default async function ShelterProfilePage({ params }: Props) {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-8">
-        {/* Profile header */}
         <section className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start">
           <Avatar
             name={shelter.orgName}
@@ -118,7 +124,6 @@ export default async function ShelterProfilePage({ params }: Props) {
               {shelter.bio}
             </p>
 
-            {/* Stats */}
             <div className="flex flex-wrap justify-center gap-6 text-sm sm:justify-start">
               <div>
                 <span className="font-semibold text-foreground">{animals.length}</span>{" "}
@@ -134,7 +139,6 @@ export default async function ShelterProfilePage({ params }: Props) {
               </div>
             </div>
 
-            {/* Links */}
             {shelter.links.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                 {shelter.links.map((link) => (
@@ -142,7 +146,7 @@ export default async function ShelterProfilePage({ params }: Props) {
                     key={link.url}
                     href={link.url}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow ugc"
                     className="inline-flex h-9 items-center rounded-md border border-border bg-secondary px-3 text-sm font-medium text-secondary-foreground hover:bg-accent"
                   >
                     {link.label}
@@ -152,14 +156,22 @@ export default async function ShelterProfilePage({ params }: Props) {
             )}
 
             <div className="flex justify-center sm:justify-start">
-              <Button size="md" disabled>
-                Message (soon)
-              </Button>
+              {canMessage ? (
+                <StartChatButton
+                  shelterId={shelter.id}
+                  signedIn={signedIn}
+                  label="Message"
+                  size="md"
+                />
+              ) : (
+                <p className="text-sm text-muted">
+                  Open Messages to reply to adopters.
+                </p>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Animals */}
         <section className="space-y-4">
           <div className="flex items-end justify-between gap-3">
             <h2 className="text-lg font-semibold tracking-tight">Animals</h2>

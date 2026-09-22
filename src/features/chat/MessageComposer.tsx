@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { sendMessage } from "./actions";
+import type { ChatMessage } from "./schema";
 
 type Props = {
   conversationId: string;
+  onSent?: (message: ChatMessage) => void;
 };
 
-export function MessageComposer({ conversationId }: Props) {
+export function MessageComposer({ conversationId, onSent }: Props) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,6 +29,15 @@ export function MessageComposer({ conversationId }: Props) {
         setError(result.error);
         return;
       }
+      // Optimistic local echo (realtime may also deliver)
+      onSent?.({
+        id: result.data.id,
+        conversationId,
+        senderId: result.data.senderId,
+        body: trimmed,
+        createdAt: result.data.createdAt,
+        readAt: null,
+      });
       setBody("");
       router.refresh();
     } catch {

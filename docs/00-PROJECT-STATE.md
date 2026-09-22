@@ -1,18 +1,17 @@
 # 00 — Project State (living document, update every session)
 
-**Last updated:** 2026-09-22 (P6-01 chat schema)
+**Last updated:** 2026-09-22 (P6-02 chat realtime)
 **Current phase:** Phase 6 — Chat
-**Next task:** Review/merge P6-01, then P6-02 realtime polish if needed
-**Repo status:** Phase 5 complete (#32). P6-01 on `feat/p6-01-chat-schema`.
+**Next task:** Merge P6-02 → Phase 6 complete → Phase 7 polish
+**Repo status:** P6-01 merged (#33). P6-02 on `feat/p6-02-chat-realtime`.
 
 ## Current task table
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| P5-* | Shelter studio | ✅ | #22–#32 |
-| P6-01 | Conversations/messages schema + RLS | 🟨 | `feat/p6-01-chat-schema` |
-| P6-02 | Realtime thread UI + unread + safety | ⬜ | partial UI in P6-01 |
-| P6-03 | Start-chat entry points | 🟨 | Contact wired in P6-01 |
+| P6-01 | Conversations/messages schema + RLS | ✅ | #33 |
+| P6-02 | Realtime thread UI + unread + safety | 🟨 | `feat/p6-02-chat-realtime` |
+| P6-03 | Start-chat entry points | ✅ | post + shelter profile |
 
 ## Session log
-- **2026-09-22 P6-01:** conversations + messages migration/RLS; list/start/send actions; /messages + /messages/[id]; safety banner; StartChatButton on post detail.
-- **2026-09-22:** Phase 5 complete (P5-06 #32).
+- **2026-09-22 P6-02:** ChatThread with Supabase Realtime INSERT; optimistic send; auto-scroll; Message on shelter profile.
+- **2026-09-22 P6-01:** Chat foundation merged (#33).
