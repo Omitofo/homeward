@@ -20,8 +20,11 @@ export function StudioNav({
   return (
     <header className="border-b border-border bg-card">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-sm font-semibold tracking-tight">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/"
+            className="text-sm font-semibold tracking-tight hover:underline"
+          >
             {siteConfig.name}
           </Link>
           <span className="text-muted" aria-hidden>
@@ -29,7 +32,7 @@ export function StudioNav({
           </span>
           <span className="text-sm font-medium">Studio</span>
           {orgName && (
-            <span className="hidden text-sm text-muted sm:inline">
+            <span className="hidden truncate text-sm text-muted sm:inline">
               · {orgName}
             </span>
           )}
@@ -37,8 +40,8 @@ export function StudioNav({
         <SignOutButton />
       </div>
       <nav
-        className="mx-auto flex max-w-3xl gap-1 overflow-x-auto px-4 pb-2"
-        aria-label="Studio"
+        className="mx-auto flex max-w-3xl gap-1 overflow-x-auto px-4 pb-3"
+        aria-label="Studio sections"
       >
         {links.map((link) => {
           const active = link.exact
@@ -49,7 +52,8 @@ export function StudioNav({
               key={link.href}
               href={link.href}
               className={cn(
-                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                // min 44px touch height on mobile
+                "inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors",
                 active
                   ? "bg-secondary text-foreground"
                   : "text-muted hover:bg-secondary/60 hover:text-foreground",

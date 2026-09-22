@@ -15,7 +15,11 @@ export default function GlobalError({ error, reset }: Props) {
   }, [error]);
 
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
+    <main
+      id="main-content"
+      className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center"
+      role="alert"
+    >
       <p className="text-sm font-medium uppercase tracking-wide text-muted">Error</p>
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">
         Something went wrong
@@ -41,6 +45,6 @@ export default function GlobalError({ error, reset }: Props) {
       {error.digest && (
         <p className="mt-4 font-mono text-xs text-muted">Ref: {error.digest}</p>
       )}
-    </div>
+    </main>
   );
 }
