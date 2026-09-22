@@ -21,8 +21,15 @@ function errorMessage(
   if (code === "shelter_promote") {
     return "Signed in, but your shelter profile could not be activated. Check SUPABASE_SERVICE_ROLE_KEY and try register/shelter again.";
   }
-  if (code === "missing_code") return "That magic link is missing a code. Request a new one.";
-  if (code === "not_configured") return "Auth is not configured (missing Supabase env vars).";
+  if (code === "missing_code") {
+    return "That magic link is missing a code. Request a new one.";
+  }
+  if (code === "not_configured") {
+    return "Auth is not configured (missing Supabase env vars).";
+  }
+  if (code === "auth_callback") {
+    return "This magic link is invalid, expired, or already used. Request a fresh link (Supabase free email allows only ~2 messages/hour). Open the newest email in the same browser you started from.";
+  }
   return "Something went wrong confirming your link. Please try again.";
 }
 
