@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { AnimalPost } from "@/types/domain";
 import { Reveal } from "@/motion/primitives/Reveal";
@@ -30,14 +31,14 @@ export function CardPeek({ posts }: { posts: AnimalPost[] }) {
                   href={`/post/${post.id}`}
                   className="group block overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <div className="aspect-square overflow-hidden bg-secondary">
+                  <div className="relative aspect-square overflow-hidden bg-secondary">
                     {img && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={img.url}
                         alt={img.altText || post.name}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                        loading="lazy"
+                        fill
+                        sizes="(max-width: 640px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       />
                     )}
                   </div>
