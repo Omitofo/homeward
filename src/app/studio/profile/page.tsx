@@ -17,7 +17,7 @@ export default async function StudioProfilePage() {
     return (
       <>
         <StudioNav pathname="/studio/profile" />
-        <main className="mx-auto max-w-3xl px-4 py-10">
+        <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
           <EmptyState
             title="Studio is for rescue accounts"
             description="Register as a shelter to edit a public profile."
@@ -32,7 +32,7 @@ export default async function StudioProfilePage() {
   return (
     <>
       <StudioNav pathname="/studio/profile" orgName={shelter.orgName} />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">Shelter profile</h1>
         <p className="mt-1 text-sm text-muted">
           Public details adopters see on{" "}
