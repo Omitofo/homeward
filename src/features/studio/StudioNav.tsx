@@ -3,12 +3,18 @@ import { SignOutButton } from "@/features/auth";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
 
-const links = [
+type StudioLink = {
+  href: string;
+  label: string;
+  exact?: boolean;
+};
+
+const links: StudioLink[] = [
   { href: "/studio", label: "Posts", exact: true },
   { href: "/studio/new", label: "New post" },
   { href: "/studio/profile", label: "Profile" },
   { href: "/studio/verification", label: "Verification" },
-] as const;
+];
 
 export function StudioNav({
   pathname,

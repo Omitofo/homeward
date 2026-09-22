@@ -22,8 +22,11 @@ export function updateMockReport(
 ): ReportRow | null {
   const idx = reports.findIndex((r) => r.id === id);
   if (idx < 0) return null;
-  reports[idx] = { ...reports[idx], ...patch };
-  return reports[idx];
+  const current = reports[idx];
+  if (!current) return null;
+  const next: ReportRow = { ...current, ...patch };
+  reports[idx] = next;
+  return next;
 }
 
 export function hasOpenMockReport(

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import {
   ensureShelterProfile,
   type ShelterIntentPayload,
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });
@@ -105,12 +105,9 @@ export async function GET(request: NextRequest) {
     response = NextResponse.redirect(
       `${origin}/login?error=shelter_promote&detail=${encodeURIComponent(promote.error)}`,
     );
-    // re-apply session cookies onto the error redirect
-    const all = request.cookies.getAll();
     // Session cookies were already set on the previous response object via setAll;
-    // rebuild from supabase cookie jar by re-running set on the new response is hard.
-    // The exchange already wrote cookies through setAll onto `response` before we
-    // replaced it — copy any supabase cookies that were set on the request.
+    // copy any supabase cookies that were set on the request.
+    const all = request.cookies.getAll();
     for (const c of all) {
       if (c.name.startsWith("sb-")) {
         response.cookies.set(c.name, c.value, {

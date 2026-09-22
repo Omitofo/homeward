@@ -25,17 +25,16 @@ function toggleSpecies(current: ParsedFeedFilters, value: string): string {
 }
 
 function toggleVerified(current: ParsedFeedFilters): string {
-  const next: ParsedFeedFilters = {
-    ...current,
-    verified: current.verified ? undefined : true,
-  };
-  // clear the verified flag properly
   if (current.verified) {
     const { verified: _, ...rest } = current;
     const sp = filtersToSearchParams(rest);
     const q = sp.toString();
     return q ? `/explore?${q}` : "/explore";
   }
+  const next: ParsedFeedFilters = {
+    ...current,
+    verified: true,
+  };
   const sp = filtersToSearchParams(next);
   return `/explore?${sp.toString()}`;
 }

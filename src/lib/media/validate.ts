@@ -11,7 +11,14 @@ export type ValidatedImage = {
 
 function startsWith(bytes: Uint8Array, sig: number[]): boolean {
   if (bytes.length < sig.length) return false;
-  return sig.every((b, i) => bytes[i] === b);
+  for (let i = 0; i < sig.length; i++) {
+    if (bytes[i] !== sig[i]) return false;
+  }
+  return true;
+}
+
+function byteAt(bytes: Uint8Array, index: number): number {
+  return bytes[index] ?? -1;
 }
 
 /** Detect type from magic bytes — never trust client MIME/extension. */
@@ -27,27 +34,27 @@ export function detectImageMime(bytes: Uint8Array): AllowedMime | null {
   if (
     bytes.length >= 12 &&
     startsWith(bytes, [0x52, 0x49, 0x46, 0x46]) &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
+    byteAt(bytes, 8) === 0x57 &&
+    byteAt(bytes, 9) === 0x45 &&
+    byteAt(bytes, 10) === 0x42 &&
+    byteAt(bytes, 11) === 0x50
   ) {
     return "image/webp";
   }
 
   if (bytes.length >= 12 && startsWith(bytes, [0x00, 0x00, 0x00])) {
     const box = String.fromCharCode(
-      bytes[4],
-      bytes[5],
-      bytes[6],
-      bytes[7],
+      byteAt(bytes, 4),
+      byteAt(bytes, 5),
+      byteAt(bytes, 6),
+      byteAt(bytes, 7),
     );
     if (box === "ftyp") {
       const brand = String.fromCharCode(
-        bytes[8],
-        bytes[9],
-        bytes[10],
-        bytes[11],
+        byteAt(bytes, 8),
+        byteAt(bytes, 9),
+        byteAt(bytes, 10),
+        byteAt(bytes, 11),
       );
       if (brand === "avif" || brand === "avis" || brand === "mif1") {
         return "image/avif";

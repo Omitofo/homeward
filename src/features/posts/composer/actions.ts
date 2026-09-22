@@ -73,17 +73,14 @@ export async function createAnimalPost(
 
   const parsed = postComposerSchema.safeParse(raw);
   if (!parsed.success) {
-    const first = parsed.error.issues[0];
     return {
       ok: false,
-      error: first?.message ?? "Invalid form data",
+      error: parsed.error.issues[0]?.message ?? "Invalid form data",
     };
   }
 
   const data = parsed.data;
-  // Prefer explicit ageGroup; if ageMonths drives it, still trust the form field
-  const ageGroup =
-    data.ageGroup || ageGroupFromMonths(data.ageMonths);
+  const ageGroup = data.ageGroup || ageGroupFromMonths(data.ageMonths);
 
   if (useMock) {
     const id = `mock-${randomUUID().slice(0, 8)}`;
@@ -160,7 +157,6 @@ export async function createAnimalPost(
 
   if (mediaError) {
     console.error("[createAnimalPost] media", mediaError.message);
-    // Best-effort: post exists without media; still return id
   }
 
   revalidatePath("/studio");
@@ -178,10 +174,9 @@ export async function updateAnimalPost(
 
   const parsed = postComposerSchema.safeParse(raw);
   if (!parsed.success) {
-    const first = parsed.error.issues[0];
     return {
       ok: false,
-      error: first?.message ?? "Invalid form data",
+      error: parsed.error.issues[0]?.message ?? "Invalid form data",
     };
   }
 
@@ -190,7 +185,6 @@ export async function updateAnimalPost(
 
   if (useMock) {
     const existing = getMockCreatedById(postId);
-    // Also allow editing seeded mock posts by fabricating an update into mock store
     const base: AnimalPost = existing ?? {
       id: postId,
       name: data.name,
@@ -247,7 +241,6 @@ export async function updateAnimalPost(
     return { ok: false, error: "Supabase is not configured" };
   }
 
-  // Ownership check via update returning
   const { data: updated, error: updError } = await supabase
     .from("animal_posts")
     .update({
@@ -278,7 +271,6 @@ export async function updateAnimalPost(
     return { ok: false, error: "Post not found or not owned by your shelter" };
   }
 
-  // Replace media set: delete then insert
   await supabase.from("post_media").delete().eq("post_id", postId);
 
   const mediaRows = data.media.map((m, i) => ({

@@ -164,8 +164,11 @@ export function PostComposer({ mode, initial, defaults }: Props) {
     setMedia((prev) => {
       const next = [...prev];
       const j = index + dir;
-      if (j < 0 || j >= next.length) return prev;
-      [next[index], next[j]] = [next[j], next[index]];
+      const a = next[index];
+      const b = next[j];
+      if (!a || !b) return prev;
+      next[index] = b;
+      next[j] = a;
       return next;
     });
   };
@@ -227,7 +230,6 @@ export function PostComposer({ mode, initial, defaults }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-8">
-      {/* Photos */}
       <section className="rounded-lg border border-border bg-card px-4 py-5 sm:px-6">
         <h2 className="text-sm font-medium">Photos</h2>
         <p className="mt-1 text-xs text-muted">
@@ -313,7 +315,6 @@ export function PostComposer({ mode, initial, defaults }: Props) {
         ) : null}
       </section>
 
-      {/* Basics */}
       <section className="space-y-4 rounded-lg border border-border bg-card px-4 py-5 sm:px-6">
         <h2 className="text-sm font-medium">Animal details</h2>
 
@@ -467,7 +468,6 @@ export function PostComposer({ mode, initial, defaults }: Props) {
         </div>
       </section>
 
-      {/* Location */}
       <section className="space-y-4 rounded-lg border border-border bg-card px-4 py-5 sm:px-6">
         <h2 className="text-sm font-medium">Location</h2>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -498,7 +498,6 @@ export function PostComposer({ mode, initial, defaults }: Props) {
         </div>
       </section>
 
-      {/* Traits */}
       <section className="rounded-lg border border-border bg-card px-4 py-5 sm:px-6">
         <h2 className="text-sm font-medium">Traits</h2>
         <p className="mt-1 text-xs text-muted">Optional tags for filters.</p>
