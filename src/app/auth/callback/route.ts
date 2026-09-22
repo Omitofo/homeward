@@ -1,13 +1,45 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { ensureShelterProfile } from "@/features/auth/promote-shelter";
-import { AUTH_NEXT_COOKIE } from "@/features/auth/constants";
+import {
+  ensureShelterProfile,
+  type ShelterIntentPayload,
+} from "@/features/auth/promote-shelter";
+import {
+  AUTH_NEXT_COOKIE,
+  AUTH_SHELTER_INTENT_COOKIE,
+} from "@/features/auth/constants";
 
 function safeNext(path: string | null | undefined): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) {
     return "/me";
   }
   return path;
+}
+
+function parseShelterIntentCookie(
+  raw: string | undefined,
+): ShelterIntentPayload | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof (parsed as ShelterIntentPayload).handle === "string" &&
+      typeof (parsed as ShelterIntentPayload).orgName === "string"
+    ) {
+      const p = parsed as ShelterIntentPayload;
+      return {
+        handle: p.handle,
+        orgName: p.orgName,
+        displayName:
+          typeof p.displayName === "string" ? p.displayName : undefined,
+      };
+    }
+  } catch {
+    // ignore malformed cookie
+  }
+  return null;
 }
 
 /**
@@ -20,6 +52,9 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = safeNext(
     request.cookies.get(AUTH_NEXT_COOKIE)?.value ?? searchParams.get("next"),
+  );
+  const shelterIntent = parseShelterIntentCookie(
+    request.cookies.get(AUTH_SHELTER_INTENT_COOKIE)?.value,
   );
 
   if (!code) {
@@ -58,13 +93,41 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback`);
   }
 
-  try {
-    await ensureShelterProfile(data.user.id, data.user.user_metadata ?? {});
-  } catch (e) {
-    console.error("[auth/callback] ensureShelterProfile", e);
+  const promote = await ensureShelterProfile(
+    data.user.id,
+    data.user.user_metadata ?? {},
+    shelterIntent,
+  );
+
+  if (!promote.ok) {
+    console.error("[auth/callback] ensureShelterProfile", promote.error);
+    // Still signed in — send them somewhere useful with a visible error flag
+    response = NextResponse.redirect(
+      `${origin}/login?error=shelter_promote&detail=${encodeURIComponent(promote.error)}`,
+    );
+    // re-apply session cookies onto the error redirect
+    const all = request.cookies.getAll();
+    // Session cookies were already set on the previous response object via setAll;
+    // rebuild from supabase cookie jar by re-running set on the new response is hard.
+    // The exchange already wrote cookies through setAll onto `response` before we
+    // replaced it — copy any supabase cookies that were set on the request.
+    for (const c of all) {
+      if (c.name.startsWith("sb-")) {
+        response.cookies.set(c.name, c.value, {
+          path: "/",
+          sameSite: "lax",
+          httpOnly: true,
+        });
+      }
+    }
   }
 
   response.cookies.set(AUTH_NEXT_COOKIE, "", {
+    httpOnly: true,
+    path: "/",
+    maxAge: 0,
+  });
+  response.cookies.set(AUTH_SHELTER_INTENT_COOKIE, "", {
     httpOnly: true,
     path: "/",
     maxAge: 0,

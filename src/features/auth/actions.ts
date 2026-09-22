@@ -9,7 +9,7 @@ import {
   magicLinkShelterSchema,
   magicLinkSignInSchema,
 } from "./schema";
-import { AUTH_NEXT_COOKIE } from "./constants";
+import { AUTH_NEXT_COOKIE, AUTH_SHELTER_INTENT_COOKIE } from "./constants";
 import type { ActionResult } from "./types";
 
 function siteOrigin(): string {
@@ -41,6 +41,7 @@ async function sendMagicLink(params: {
   email: string;
   next: string;
   data?: Record<string, string>;
+  shelterIntent?: { handle: string; orgName: string; displayName: string };
 }): Promise<ActionResult> {
   const supabase = await createClient();
   if (!supabase) {
@@ -63,6 +64,27 @@ async function sendMagicLink(params: {
     maxAge: 60 * 15,
     secure: process.env.NODE_ENV === "production",
   });
+
+  if (params.shelterIntent) {
+    cookieStore.set(
+      AUTH_SHELTER_INTENT_COOKIE,
+      JSON.stringify(params.shelterIntent),
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 15,
+        secure: process.env.NODE_ENV === "production",
+      },
+    );
+  } else {
+    // Clear any stale shelter intent from a previous attempt
+    cookieStore.set(AUTH_SHELTER_INTENT_COOKIE, "", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 0,
+    });
+  }
 
   const { error } = await supabase.auth.signInWithOtp({
     email: params.email,
@@ -123,6 +145,8 @@ export async function signUpAdopter(input: unknown): Promise<ActionResult> {
  * New shelter account. Profile is created as adopter by the DB trigger;
  * after the user confirms the link we promote role + insert shelters row
  * in the callback via ensureShelterProfile.
+ *
+ * Requires SUPABASE_SERVICE_ROLE_KEY — role is never client-writable.
  */
 export async function signUpShelter(input: unknown): Promise<ActionResult> {
   const parsed = magicLinkShelterSchema.safeParse(input);
@@ -134,25 +158,36 @@ export async function signUpShelter(input: unknown): Promise<ActionResult> {
   }
 
   const admin = createAdminClient();
-  if (admin) {
-    const { data: existing } = await admin
-      .from("shelters")
-      .select("id")
-      .eq("handle", parsed.data.handle)
-      .maybeSingle();
-    if (existing) {
-      return { ok: false, error: "That handle is already taken." };
-    }
+  if (!admin) {
+    return {
+      ok: false,
+      error:
+        "Shelter sign-up needs SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only). Copy it from Supabase → Project Settings → API.",
+    };
+  }
+
+  const { data: existing } = await admin
+    .from("shelters")
+    .select("id")
+    .eq("handle", parsed.data.handle)
+    .maybeSingle();
+  if (existing) {
+    return { ok: false, error: "That handle is already taken." };
   }
 
   return sendMagicLink({
     email: parsed.data.email,
-    next: safeNextPath(parsed.data.next),
+    next: safeNextPath(parsed.data.next ?? "/studio"),
     data: {
       display_name: parsed.data.displayName,
       intent: "shelter",
       org_name: parsed.data.orgName,
       handle: parsed.data.handle,
+    },
+    shelterIntent: {
+      handle: parsed.data.handle,
+      orgName: parsed.data.orgName,
+      displayName: parsed.data.displayName,
     },
   });
 }
