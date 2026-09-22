@@ -47,6 +47,10 @@ Why: Matches design north star (photos as hero, UI as frame) and GSAP impact lab
 Details: `docs/11-INTRO-CONCEPT.md`.
 Alternatives: interactive match moment (more product, less cinematic); pure typographic with no imagery.
 
+**D-014 — Image pipeline: sharp → WebP, path `{shelter_id}/{uuid}.webp`** · Accepted · 2026-09-22
+Why: Security doc requires magic-byte validation, EXIF strip, and server-side resize. `sharp` is the Node/Vercel standard; always re-encode to WebP (q82, max edge 2000). Storage path first segment is `shelter_id` so Storage RLS can scope writes. Bucket `animal-media` is public-read.
+Alternatives: client-only resize (rejected); keep original format; Cloudinary (extra vendor).
+
 ## Open questions for the owner (answer any time; defaults above apply until then)
 1. **Project name** (Homeward is a placeholder) and rough brand feeling (playful, calm, editorial?).
 2. **Can shelters publish before being verified?** Default: yes, without the badge, and a "Verified only" filter exists. Alternative: posting requires verification.
