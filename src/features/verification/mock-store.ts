@@ -16,6 +16,27 @@ export function listMockVerificationByShelter(
   return requests.filter((r) => r.shelterId === shelterId);
 }
 
+export function listAllMockVerificationRequests(): VerificationRequest[] {
+  return requests.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function getMockVerificationRequest(
+  id: string,
+): VerificationRequest | null {
+  return requests.find((r) => r.id === id) ?? null;
+}
+
+export function updateMockVerificationRequest(
+  id: string,
+  patch: Partial<VerificationRequest>,
+): VerificationRequest | null {
+  const idx = requests.findIndex((r) => r.id === id);
+  if (idx < 0) return null;
+  const next = { ...requests[idx], ...patch };
+  requests[idx] = next;
+  return next;
+}
+
 export function getMockVerificationStatus(
   shelterId: string,
 ): VerificationStatus | null {
