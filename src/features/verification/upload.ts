@@ -5,12 +5,10 @@ import { getCurrentProfile } from "@/features/auth/session";
 import type { ActionResult } from "@/features/auth/types";
 import { getShelterForProfile } from "@/features/shelters";
 import { createClient } from "@/lib/supabase/server";
+import { MAX_DOC_BYTES, VERIFICATION_DOCS_BUCKET } from "./constants";
 import type { VerificationDocInput } from "./schema";
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
-
-export const VERIFICATION_DOCS_BUCKET = "verification-docs";
-export const MAX_DOC_BYTES = 10 * 1024 * 1024;
 
 const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46]; // %PDF
 const JPEG_MAGIC = [0xff, 0xd8, 0xff];
@@ -93,7 +91,8 @@ export async function uploadVerificationDoc(
 
   const id = randomUUID();
   const storagePath = `${shelter.id}/${id}.${detected.ext}`;
-  const safeName = file.name.replace(/[^\w.\-()+ ]/g, "_").slice(0, 180) || `doc.${detected.ext}`;
+  const safeName =
+    file.name.replace(/[^\w.\-()+ ]/g, "_").slice(0, 180) || `doc.${detected.ext}`;
 
   if (useMock) {
     return {
