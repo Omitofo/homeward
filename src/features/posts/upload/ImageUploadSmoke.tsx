@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui";
-import { MAX_UPLOAD_BYTES } from "@/lib/media";
+import { MAX_UPLOAD_BYTES } from "@/lib/media/constants";
 import { uploadAnimalImage, type UploadedMedia } from "./actions";
 
 type Item = UploadedMedia & { localPreview?: string };
