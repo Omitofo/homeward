@@ -107,14 +107,15 @@ export async function reviewVerificationRequest(
 
   const parsed = reviewSchema.safeParse(raw);
   if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return { ok: false, error: first?.message ?? "Invalid review" };
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid review",
+    };
   }
 
   const { requestId, decision, reviewNote } = parsed.data;
   const now = new Date().toISOString();
 
-  // Map request decision → shelter verification_status
   const shelterStatus =
     decision === "approved"
       ? ("verified" as const)
@@ -194,7 +195,6 @@ export async function reviewVerificationRequest(
     console.error("[reviewVerificationRequest] shelter", shelterError.message);
   }
 
-  // Resolve handle for revalidation
   const { data: shelter } = await supabase
     .from("shelters")
     .select("handle")

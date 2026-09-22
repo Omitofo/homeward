@@ -218,7 +218,10 @@ export async function startConversation(
 
   const parsed = startConversationSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid",
+    };
   }
 
   const { shelterId, postId, initialMessage } = parsed.data;
@@ -289,9 +292,10 @@ export async function startConversation(
     .eq("shelter_profile_id", shelterProfileId)
     .maybeSingle();
 
-  let conversationId = existing?.id as string | undefined;
-
-  if (!conversationId) {
+  let conversationId: string;
+  if (existing?.id) {
+    conversationId = existing.id;
+  } else {
     const { data: created, error } = await supabase
       .from("conversations")
       .insert({
@@ -302,7 +306,7 @@ export async function startConversation(
       .select("id")
       .single();
 
-    if (error || !created) {
+    if (error || !created?.id) {
       console.error("[startConversation]", error?.message);
       return { ok: false, error: "Could not start conversation" };
     }
@@ -332,7 +336,10 @@ export async function sendMessage(
 
   const parsed = sendMessageSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid",
+    };
   }
 
   const { conversationId, body } = parsed.data;
