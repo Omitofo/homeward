@@ -23,7 +23,7 @@ export function StudioPostRow({ post }: { post: AnimalPost }) {
           // eslint-disable-next-line @next/next/no-img-element -- mock URLs vary; Image later with storage
           <img
             src={thumb.url}
-            alt={thumb.altText || post.name}
+            alt=""
             className="h-full w-full object-cover"
             width={56}
             height={56}
@@ -37,6 +37,7 @@ export function StudioPostRow({ post }: { post: AnimalPost }) {
             className="truncate font-medium hover:underline"
           >
             {post.name}
+            <span className="sr-only"> — edit post</span>
           </Link>
           <Badge variant={statusVariant[post.status]} withDot>
             {post.status}
@@ -48,7 +49,8 @@ export function StudioPostRow({ post }: { post: AnimalPost }) {
       </div>
       <Link
         href={href}
-        className="shrink-0 text-sm font-medium text-primary hover:underline"
+        className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary hover:underline"
+        aria-label={`Edit ${post.name}`}
       >
         Edit
       </Link>

@@ -8,8 +8,9 @@
   /* ---------- Color: base neutrals (warm-leaning) ---------- */
   --color-background: #faf9f7; /* warm off-white */
   --color-foreground: #1c1917; /* warm near-black */
-  --color-muted: #78716c; /* warm gray for secondary text */
-  --color-muted-foreground: #a8a29e;
+  /* muted tuned for ≥4.5:1 on background (WCAG AA body text) */
+  --color-muted: #57534e; /* stone-600 */
+  --color-muted-foreground: #78716c; /* stone-500 — decorative / large only */
   --color-border: #e7e5e4;
   --color-input: #e7e5e4;
   --color-ring: #0d9488;
@@ -127,6 +128,7 @@
   :root {
     --color-background: #0c0a09;
     --color-foreground: #fafaf9;
+    /* muted on near-black ≥4.5:1 */
     --color-muted: #a8a29e;
     --color-muted-foreground: #78716c;
     --color-border: #292524;

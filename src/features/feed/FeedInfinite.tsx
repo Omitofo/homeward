@@ -23,6 +23,7 @@ export function FeedInfinite({
   const [cursor, setCursor] = useState(initialCursor);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
 
@@ -31,12 +32,14 @@ export function FeedInfinite({
     setItems(initialItems);
     setCursor(initialCursor);
     setError(null);
+    setStatusMessage(null);
   }, [initialItems, initialCursor]);
 
   const loadMore = useCallback(() => {
     if (!cursor || loadingRef.current) return;
     loadingRef.current = true;
     setError(null);
+    setStatusMessage("Loading more animals…");
 
     startTransition(async () => {
       try {
@@ -45,14 +48,22 @@ export function FeedInfinite({
           cursor,
           limit: pageSize,
         });
+        let added = 0;
         setItems((prev) => {
           const seen = new Set(prev.map((p) => p.id));
           const fresh = result.items.filter((p) => !seen.has(p.id));
+          added = fresh.length;
           return [...prev, ...fresh];
         });
         setCursor(result.nextCursor);
+        setStatusMessage(
+          result.nextCursor
+            ? `Loaded ${added} more. Continue scrolling for more.`
+            : `Loaded ${added} more. End of results.`,
+        );
       } catch {
         setError("Couldn’t load more. Try again.");
+        setStatusMessage(null);
       } finally {
         loadingRef.current = false;
       }
@@ -77,10 +88,17 @@ export function FeedInfinite({
     <div className="space-y-6">
       <FeedGrid posts={items} />
 
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {statusMessage}
+      </div>
+
       {cursor && (
         <div ref={sentinelRef} className="flex flex-col items-center gap-3 py-4">
           {isPending && (
-            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div
+              className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              aria-hidden
+            >
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="overflow-hidden rounded-lg border border-border">
                   <Skeleton className="aspect-square w-full rounded-none" />
@@ -109,7 +127,9 @@ export function FeedInfinite({
       )}
 
       {!cursor && items.length > 0 && (
-        <p className="py-6 text-center text-sm text-muted">You’ve seen all matches</p>
+        <p className="py-6 text-center text-sm text-muted" role="status">
+          You’ve seen all matches
+        </p>
       )}
     </div>
   );
