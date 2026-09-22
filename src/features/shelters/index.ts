@@ -10,3 +10,4 @@ export const sheltersRepository: SheltersRepository = useMock
   : supabaseSheltersRepository;
 
 export type { SheltersRepository } from "./repository";
+export { getShelterForProfile } from "./get-for-profile";
