@@ -21,7 +21,7 @@ export default async function StudioPage() {
     return (
       <>
         <StudioNav pathname="/studio" />
-        <main className="mx-auto max-w-3xl px-4 py-10">
+        <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
           <EmptyState
             title="Studio is for rescue accounts"
             description="You are signed in as an adopter. Register a shelter account to post animals and manage your profile."
@@ -42,7 +42,7 @@ export default async function StudioPage() {
   return (
     <>
       <StudioNav pathname="/studio" orgName={shelter.orgName} />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Your posts</h1>

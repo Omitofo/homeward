@@ -20,7 +20,7 @@ export default async function StudioVerificationPage() {
     return (
       <>
         <StudioNav pathname="/studio/verification" />
-        <main className="mx-auto max-w-3xl px-4 py-10">
+        <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
           <EmptyState
             title="Studio is for rescue accounts"
             description="Verification is available after you register as a shelter."
@@ -41,7 +41,7 @@ export default async function StudioVerificationPage() {
   return (
     <>
       <StudioNav pathname="/studio/verification" orgName={shelter.orgName} />
-      <main className="mx-auto max-w-3xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">Verification</h1>
         <p className="mt-1 text-sm text-muted">
           The Verified badge is granted by Homeward admins after reviewing your

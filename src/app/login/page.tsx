@@ -44,7 +44,10 @@ export default async function LoginPage({ searchParams }: Props) {
   const message = errorMessage(error, detail);
 
   return (
-    <div className="mx-auto flex min-h-full max-w-md flex-col justify-center px-4 py-12">
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-full max-w-md flex-col justify-center px-4 py-12"
+    >
       <div className="mb-8 text-center">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           {siteConfig.name}
@@ -82,6 +85,6 @@ export default async function LoginPage({ searchParams }: Props) {
           I represent a rescue
         </Link>
       </p>
-    </div>
+    </main>
   );
 }

@@ -39,6 +39,10 @@ export function FilterBar({
             size="sm"
             onClick={() => setOpen(true)}
             aria-expanded={open}
+            aria-haspopup="dialog"
+            aria-label={
+              count > 0 ? `Filters, ${count} active` : "Open filters"
+            }
           >
             Filters{count > 0 ? ` · ${count}` : ""}
           </Button>

@@ -10,7 +10,10 @@ export const metadata: Metadata = {
 
 export default function ShelterRegisterPage() {
   return (
-    <div className="mx-auto flex min-h-full max-w-md flex-col justify-center px-4 py-12">
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-full max-w-md flex-col justify-center px-4 py-12"
+    >
       <div className="mb-8 text-center">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           {siteConfig.name}
@@ -32,6 +35,6 @@ export default function ShelterRegisterPage() {
           Adopter sign-up
         </Link>
       </p>
-    </div>
+    </main>
   );
 }

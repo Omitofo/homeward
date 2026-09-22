@@ -9,12 +9,15 @@ type Props = {
   conversationId: string;
   initialMessages: ChatMessage[];
   currentUserId: string;
+  /** Display name of the other participant (for screen-reader labels) */
+  peerName?: string;
 };
 
 export function ChatThread({
   conversationId,
   initialMessages,
   currentUserId,
+  peerName = "them",
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -90,12 +93,15 @@ export function ChatThread({
         ref={listRef}
         className="flex flex-1 flex-col gap-3 overflow-y-auto pb-4"
         aria-live="polite"
+        aria-relevant="additions"
+        aria-label="Message thread"
       >
         {messages.length === 0 ? (
           <li className="text-sm text-muted">No messages yet. Say hello.</li>
         ) : null}
         {messages.map((m) => {
           const mine = m.senderId === currentUserId;
+          const who = mine ? "You" : peerName;
           return (
             <li
               key={m.id}
@@ -105,6 +111,7 @@ export function ChatThread({
                   : "mr-8 self-start rounded-lg border border-border bg-card px-3 py-2 text-sm"
               }
             >
+              <span className="sr-only">{who} said: </span>
               <p className="whitespace-pre-wrap">{m.body}</p>
               <time
                 className={

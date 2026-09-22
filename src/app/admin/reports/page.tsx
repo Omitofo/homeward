@@ -13,7 +13,7 @@ export default async function AdminReportsPage() {
   const ctx = await requireAdminContext();
   if (!ctx) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
+      <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
         <EmptyState
           title="Admins only"
           description="The reports queue is restricted to administrators."
@@ -31,17 +31,19 @@ export default async function AdminReportsPage() {
   const queue = result.ok ? result.data : [];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-        <nav className="flex gap-3 text-sm">
+        <nav className="flex gap-3 text-sm" aria-label="Admin sections">
           <Link
             href="/admin/verification"
             className="text-muted hover:text-foreground"
           >
             Verification
           </Link>
-          <span className="font-medium text-foreground">Reports</span>
+          <span className="font-medium text-foreground" aria-current="page">
+            Reports
+          </span>
         </nav>
       </div>
       <p className="text-sm text-muted">
