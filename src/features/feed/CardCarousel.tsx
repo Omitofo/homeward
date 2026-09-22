@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import Image from "next/image";
 import type { PostMedia } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
@@ -12,13 +12,18 @@ type Props = {
   sizes?: string;
 };
 
-export function CardCarousel({ media, name, sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" }: Props) {
+export function CardCarousel({
+  media,
+  name,
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw",
+}: Props) {
   const sorted = [...media].sort((a, b) => a.position - b.position);
   const [index, setIndex] = useState(0);
   const count = sorted.length;
+  const statusId = useId();
 
   const go = useCallback(
-    (delta: number, e?: React.MouseEvent) => {
+    (delta: number, e?: React.MouseEvent | React.KeyboardEvent) => {
       e?.preventDefault();
       e?.stopPropagation();
       if (count <= 1) return;
@@ -36,6 +41,15 @@ export function CardCarousel({ media, name, sizes = "(max-width: 640px) 100vw, (
     [],
   );
 
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (count <= 1) return;
+      if (e.key === "ArrowLeft") go(-1, e);
+      if (e.key === "ArrowRight") go(1, e);
+    },
+    [count, go],
+  );
+
   if (count === 0) {
     return (
       <div className="flex h-full items-center justify-center text-muted">No photo</div>
@@ -45,7 +59,13 @@ export function CardCarousel({ media, name, sizes = "(max-width: 640px) 100vw, (
   const current = sorted[index]!;
 
   return (
-    <div className="relative h-full w-full">
+    <div
+      className="relative h-full w-full"
+      role="group"
+      aria-roledescription="carousel"
+      aria-label={`${name} photos`}
+      onKeyDown={onKeyDown}
+    >
       <Image
         src={current.url}
         alt={current.altText || `${name} photo ${index + 1}`}
@@ -54,43 +74,49 @@ export function CardCarousel({ media, name, sizes = "(max-width: 640px) 100vw, (
         className="object-cover"
       />
 
+      {/* Live region announces slide changes for screen readers */}
+      <span id={statusId} className="sr-only" aria-live="polite" aria-atomic="true">
+        Photo {index + 1} of {count}
+      </span>
+
       {count > 1 && (
         <>
           <button
             type="button"
             onClick={(e) => go(-1, e)}
-            className="absolute left-1.5 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-sm text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+            className="absolute left-1.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-base text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100"
             aria-label="Previous photo"
+            aria-controls={statusId}
           >
             ‹
           </button>
           <button
             type="button"
             onClick={(e) => go(1, e)}
-            className="absolute right-1.5 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-sm text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+            className="absolute right-1.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-base text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100"
             aria-label="Next photo"
+            aria-controls={statusId}
           >
             ›
           </button>
 
-          <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+          <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1.5" role="tablist" aria-label="Photo pagination">
             {sorted.map((_, i) => (
               <button
                 key={sorted[i]!.id}
                 type="button"
                 onClick={(e) => jump(i, e)}
                 className={cn(
-                  "h-1 rounded-full transition-all",
-                  i === index ? "w-3 bg-primary" : "w-1 bg-background/80",
+                  "h-2.5 min-w-2.5 rounded-full transition-all",
+                  i === index ? "w-4 bg-primary" : "w-2.5 bg-background/80",
                 )}
-                aria-label={`Photo ${i + 1}`}
-                aria-current={i === index}
+                aria-label={`Photo ${i + 1} of ${count}`}
+                aria-current={i === index ? "true" : undefined}
               />
             ))}
           </div>
 
-          {/* subtle count badge when not hovering arrows */}
-          <span className="absolute right-2 top-2 z-10 rounded-full bg-background/80 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur">
+          <span className="absolute right-2 top-2 z-10 rounded-full bg-background/80 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur" aria-hidden>
             {index + 1}/{count}
           </span>
         </>

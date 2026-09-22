@@ -25,8 +25,9 @@ export function EmptyState({
         "rounded-lg border border-border bg-card px-6 py-16 text-center",
         className,
       )}
+      role="status"
     >
-      <p className="text-lg font-medium text-foreground">{title}</p>
+      <h2 className="text-lg font-medium text-foreground">{title}</h2>
       {description && (
         <p className="mx-auto mt-1 max-w-sm text-sm text-muted">{description}</p>
       )}

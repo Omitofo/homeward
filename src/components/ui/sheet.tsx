@@ -23,7 +23,7 @@ export type SheetProps = {
 /**
  * Bottom sheet (mobile-first). On larger screens it still docks to the bottom
  * for consistency with the filter UX described in the design principles.
- * Escape closes; basic focus return on close.
+ * Escape closes; focus is trapped while open and restored on close.
  */
 export function Sheet({
   open,
@@ -43,11 +43,50 @@ export function Sheet({
     if (!open) return;
 
     previouslyFocused.current = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
+
+    // Focus the panel (or first focusable) after paint
+    const focusTarget =
+      panelRef.current?.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      ) ?? panelRef.current;
+    focusTarget?.focus();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+        return;
+      }
+
+      // Focus trap
+      if (e.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+
+      if (focusable.length === 0) {
+        e.preventDefault();
+        panelRef.current.focus();
+        return;
+      }
+
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+
+      if (e.shiftKey) {
+        if (document.activeElement === first || document.activeElement === panelRef.current) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
 
@@ -68,6 +107,7 @@ export function Sheet({
         aria-label="Close"
         className="absolute inset-0 bg-foreground/40"
         onClick={close}
+        tabIndex={-1}
       />
 
       {/* Panel */}
