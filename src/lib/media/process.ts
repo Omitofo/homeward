@@ -1,3 +1,5 @@
+import "server-only";
+
 import sharp from "sharp";
 import { MAX_IMAGE_EDGE, OUTPUT_MIME } from "./constants";
 
