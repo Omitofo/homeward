@@ -10,7 +10,8 @@ export const sendMessageSchema = z.object({
 });
 
 export const startConversationSchema = z.object({
-  shelterProfileId: z.string().min(1),
+  /** public.shelters.id */
+  shelterId: z.string().min(1),
   postId: z.string().optional(),
   initialMessage: z
     .string()
@@ -36,7 +37,6 @@ export type ConversationSummary = {
   postId: string | null;
   createdAt: string;
   updatedAt: string;
-  /** Other party display name for list UI */
   peerName: string;
   lastMessagePreview: string | null;
   unreadCount: number;

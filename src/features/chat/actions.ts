@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/features/auth/session";
 import type { ActionResult } from "@/features/auth/types";
 import { createClient } from "@/lib/supabase/server";
+import { mockShelters } from "@/data/mock/shelters";
 import {
   sendMessageSchema,
   startConversationSchema,
@@ -20,6 +21,30 @@ import {
 } from "./mock-store";
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
+
+/** Resolve shelter org → owning profile id. */
+async function resolveShelterProfileId(
+  shelterId: string,
+): Promise<{ profileId: string; orgName: string } | null> {
+  if (useMock) {
+    const s = mockShelters.find((x) => x.id === shelterId);
+    if (!s) return null;
+    // Mock: use a deterministic pseudo profile id derived from shelter id
+    return { profileId: `profile-${shelterId}`, orgName: s.orgName };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const { data } = await supabase
+    .from("shelters")
+    .select("profile_id, org_name")
+    .eq("id", shelterId)
+    .maybeSingle();
+
+  if (!data) return null;
+  return { profileId: data.profile_id, orgName: data.org_name };
+}
 
 export async function listConversations(): Promise<
   ActionResult<ConversationSummary[]>
@@ -45,9 +70,7 @@ export async function listConversations(): Promise<
       messages ( body, created_at, sender_id, read_at )
     `,
     )
-    .or(
-      `adopter_id.eq.${profile.id},shelter_profile_id.eq.${profile.id}`,
-    )
+    .or(`adopter_id.eq.${profile.id},shelter_profile_id.eq.${profile.id}`)
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -159,7 +182,6 @@ export async function getConversationMessages(
     return { ok: false, error: "Could not load messages" };
   }
 
-  // Mark peer messages as read
   await supabase
     .from("messages")
     .update({ read_at: new Date().toISOString() })
@@ -201,7 +223,13 @@ export async function startConversation(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
   }
 
-  const { shelterProfileId, postId, initialMessage } = parsed.data;
+  const { shelterId, postId, initialMessage } = parsed.data;
+  const shelter = await resolveShelterProfileId(shelterId);
+  if (!shelter) {
+    return { ok: false, error: "Shelter not found" };
+  }
+
+  const shelterProfileId = shelter.profileId;
 
   if (shelterProfileId === profile.id) {
     return { ok: false, error: "Cannot message yourself" };
@@ -244,7 +272,7 @@ export async function startConversation(
       postId: postId ?? null,
       createdAt: now,
       updatedAt: now,
-      peerName: "Rescue",
+      peerName: shelter.orgName,
       lastMessagePreview: initialMessage?.slice(0, 120) ?? null,
       unreadCount: 0,
       messages,
@@ -256,7 +284,6 @@ export async function startConversation(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
 
-  // Reuse existing thread if any
   const { data: existing } = await supabase
     .from("conversations")
     .select("id")

@@ -8,7 +8,8 @@ import type { AuthIntent } from "@/features/auth/intent";
 import { startConversation } from "./actions";
 
 type Props = {
-  shelterProfileId: string;
+  /** public.shelters.id */
+  shelterId: string;
   postId?: string;
   signedIn: boolean;
   disabled?: boolean;
@@ -17,7 +18,7 @@ type Props = {
 };
 
 export function StartChatButton({
-  shelterProfileId,
+  shelterId,
   postId,
   signedIn,
   disabled,
@@ -46,7 +47,7 @@ export function StartChatButton({
     setError(null);
     try {
       const result = await startConversation({
-        shelterProfileId,
+        shelterId,
         postId,
         initialMessage: postId
           ? "Hi! I'm interested in this animal and would love to learn more."

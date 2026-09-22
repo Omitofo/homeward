@@ -18,16 +18,13 @@ type Props = {
   initialLiked?: boolean;
   userId?: string | null;
   role?: Role | null;
-  /** Shelter's profile id (for chat). When missing, contact stays disabled. */
-  shelterProfileId?: string | null;
+  /** public.shelters.id */
+  shelterId?: string | null;
   shareTitle: string;
   shareUrl: string;
   shareText?: string;
 };
 
-/**
- * Contact / Like / Share / Save / Report on the post detail page.
- */
 export function PostActions({
   postId,
   status,
@@ -36,7 +33,7 @@ export function PostActions({
   initialLiked = false,
   userId,
   role,
-  shelterProfileId,
+  shelterId,
   shareTitle,
   shareUrl,
   shareText,
@@ -66,9 +63,9 @@ export function PostActions({
     <>
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start gap-3">
-          {shelterProfileId && canStartChat ? (
+          {shelterId && canStartChat ? (
             <StartChatButton
-              shelterProfileId={shelterProfileId}
+              shelterId={shelterId}
               postId={postId}
               signedIn={signedIn}
               disabled={status !== "available"}
