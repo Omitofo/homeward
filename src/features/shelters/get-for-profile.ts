@@ -2,6 +2,7 @@ import type { Shelter } from "@/types/domain";
 import { createClient } from "@/lib/supabase/server";
 import { mockShelters } from "@/data/mock/shelters";
 import { getMockShelterOverride } from "./profile/mock-store";
+import { getMockVerificationStatus } from "@/features/verification/mock-store";
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
 
@@ -14,11 +15,15 @@ export async function getShelterForProfile(
   profileId: string,
 ): Promise<Shelter | null> {
   if (useMock) {
-    // Deterministic demo owner for any shelter-role session in mock mode.
     void profileId;
     const base = mockShelters[0] ?? null;
     if (!base) return null;
-    return getMockShelterOverride(base.id) ?? base;
+    const overridden = getMockShelterOverride(base.id) ?? base;
+    const vrStatus = getMockVerificationStatus(overridden.id);
+    if (vrStatus) {
+      return { ...overridden, verificationStatus: vrStatus };
+    }
+    return overridden;
   }
 
   const supabase = await createClient();
