@@ -11,3 +11,8 @@ export const sheltersRepository: SheltersRepository = useMock
 
 export type { SheltersRepository } from "./repository";
 export { getShelterForProfile } from "./get-for-profile";
+export {
+  ProfileEditor,
+  updateShelterProfile,
+  shelterProfileSchema,
+} from "./profile";
