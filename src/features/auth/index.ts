@@ -5,6 +5,8 @@ export {
   signUpShelter,
   signOut,
 } from "./actions";
+export { exportAccountData, deleteAccount } from "./account-actions";
+export { AccountPrivacy } from "./AccountPrivacy";
 export { ensureShelterProfile } from "./promote-shelter";
 export { MagicLinkForm } from "./components/MagicLinkForm";
 export { SignOutButton } from "./components/SignOutButton";
