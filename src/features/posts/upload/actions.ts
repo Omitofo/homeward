@@ -11,6 +11,7 @@ import {
 } from "@/lib/media";
 import { processAnimalImage } from "@/lib/media/process";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, RATE_LIMITS } from "@/lib/security";
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
 
@@ -34,6 +35,14 @@ export async function uploadAnimalImage(
   }
   if (profile.role !== "shelter" && profile.role !== "admin") {
     return { ok: false, error: "Only rescue accounts can upload animal photos" };
+  }
+
+  const limited = rateLimit(`upload:${profile.id}`, RATE_LIMITS.upload);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      error: `Upload limit reached. Wait about ${limited.retryAfterSec}s and try again.`,
+    };
   }
 
   const shelter = await getShelterForProfile(profile.id);
