@@ -2,16 +2,19 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { reportError } from "@/lib/monitoring";
 
 type Props = {
   error: Error & { digest?: string };
   reset: () => void;
 };
 
-export default function GlobalError({ error, reset }: Props) {
+export default function AppError({ error, reset }: Props) {
   useEffect(() => {
-    // Reserved for error reporting (Phase 7)
-    console.error(error);
+    reportError(error, {
+      digest: error.digest,
+      source: "app/error",
+    });
   }, [error]);
 
   return (

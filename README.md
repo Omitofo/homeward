@@ -3,46 +3,38 @@
 > A social platform where verified rescue centers post animals for adoption and people browse, like,
 > comment, and chat their way to a new companion. Built as a showcase of **GSAP** on landing pages and web apps.
 
-**Status:** Planning complete, implementation not started. See [`docs/00-PROJECT-STATE.md`](docs/00-PROJECT-STATE.md).
+**Status:** Phase 7 (polish & launch). See [`docs/00-PROJECT-STATE.md`](docs/00-PROJECT-STATE.md).
 
 ## What it is
-- **Browse without an account.** A visitor can explore the feed, filters, and shelter profiles freely.
-- **Instagram-style feed.** Image carousels, text, like, share, comments. Single column on mobile, grid on tablet and desktop.
-- **Powerful filters.** Country, region, city, species, breed, age, size, sex, and more. Shareable via URL.
-- **Three account types.**
-  - *Adopter* (email + name): likes, comments, saved searches, chat.
-  - *Shelter* (rescue center): uploads animals, profile with bio, links, image grid. Can earn a **Verified** badge.
-  - *Admin*: reviews shelter verification requests and handles reports.
-- **Motion-first UX.** A cinematic intro and purposeful GSAP micro-interactions throughout.
+- **Browse without an account.** Explore the feed, filters, and shelter profiles freely.
+- **Instagram-style feed.** Image carousels, likes, share, comments.
+- **Filters in the URL.** Country, species, size, and more — shareable links.
+- **Roles:** Adopter · Shelter (verified badge) · Admin (moderation).
+- **Motion-first UX.** GSAP on the intro and purposeful micro-interactions (toggleable).
 
-## Tech stack (proposed, see `docs/10-DECISIONS.md`)
-Next.js (App Router) · TypeScript (strict) · Tailwind CSS · GSAP + `@gsap/react` · Supabase (Postgres, Auth, Storage, Realtime, RLS) · Zod · Vitest · Playwright
+## Stack
+Next.js (App Router) · TypeScript (strict) · Tailwind CSS · GSAP · Supabase · Zod
 
 ## Getting started
-> Not scaffolded yet. Phase 0 creates the app. Once it exists:
 ```bash
-cp .env.example .env.local   # fill in values
+cp .env.example .env.local   # fill in Supabase keys when ready
 npm install
 npm run dev
 ```
 
-## Documentation
-Everything lives in [`docs/`](docs/). Start with `CLAUDE.md` (AI collaborators) or `docs/00-PROJECT-STATE.md`.
+Scripts: `npm run lint` · `npm run typecheck` · `npm run build`
 
+With `NEXT_PUBLIC_USE_MOCK_DATA=true` (default) the feed runs without a database.
+
+## Deploy
+See **[`docs/12-DEPLOY.md`](docs/12-DEPLOY.md)** for Vercel + Supabase production, domain, backups, and error monitoring.
+
+## Documentation
 | Doc | Purpose |
 |-----|---------|
-| 00 Project State | Current status, task table, next steps |
-| 01 Vision & Scope | Goals, MVP, non-goals |
-| 02 Roles & Flows | Permissions matrix, user journeys |
-| 03 Architecture | Stack, folder structure, data access layer |
-| 04 Design Principles | Visual system, references, responsive rules |
-| 05 Motion (GSAP) | Motion plan, tokens, performance rules |
-| 06 Data Model | Tables, relations, RLS intent |
-| 07 Security | OWASP Top 10 mapping, upload safety, abuse prevention |
-| 08 Engineering Standards | Code quality, testing, git, definition of done |
-| 09 Roadmap | Phases and task backlog |
-| 10 Decisions | ADR log and open questions |
+| [00 Project State](docs/00-PROJECT-STATE.md) | Current status, next tasks |
+| [01–11](docs/) | Vision, roles, architecture, design, motion, data, security, standards, roadmap, ADRs, intro |
+| [12 Deploy](docs/12-DEPLOY.md) | Production checklist |
 
-## Working with limited context
-This repo is designed so a fresh AI session (or a new human) can be productive in minutes: read
-`CLAUDE.md`, then `docs/00-PROJECT-STATE.md`, then only what the next task requires.
+## License
+Private / unlicensed unless stated otherwise.
