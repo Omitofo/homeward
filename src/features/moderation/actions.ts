@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/features/auth/session";
 import type { ActionResult } from "@/features/auth/types";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, RATE_LIMITS } from "@/lib/security";
 import {
   resolveReportSchema,
   submitReportSchema,
@@ -28,6 +29,14 @@ export async function submitReport(
   const profile = await getCurrentProfile();
   if (!profile) {
     return { ok: false, error: "Sign in required" };
+  }
+
+  const limited = rateLimit(`report:${profile.id}`, RATE_LIMITS.report);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      error: `Too many reports. Wait about ${limited.retryAfterSec}s and try again.`,
+    };
   }
 
   const parsed = submitReportSchema.safeParse(raw);

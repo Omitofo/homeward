@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/features/auth/session";
 import type { ActionResult } from "@/features/auth/types";
+import { rateLimit, RATE_LIMITS } from "@/lib/security";
 import { addCommentSchema } from "./schema";
 import type { CommentItem } from "./types";
 
@@ -77,6 +78,14 @@ export async function addComment(
   const profile = await getCurrentProfile();
   if (!profile) {
     return { ok: false, error: "Sign in to comment" };
+  }
+
+  const limited = rateLimit(`comment:${profile.id}`, RATE_LIMITS.comment);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      error: `Too many comments. Wait about ${limited.retryAfterSec}s and try again.`,
+    };
   }
 
   const { postId, body } = parsed.data;
