@@ -34,7 +34,7 @@ export async function getShelterForProfile(
     .select(
       `
       id, handle, org_name, bio, links, country_code, region, city, verification_status,
-      profiles ( avatar_url )
+      profiles!shelters_profile_id_fkey ( avatar_url )
     `,
     )
     .eq("profile_id", profileId)
