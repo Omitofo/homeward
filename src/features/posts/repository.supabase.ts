@@ -101,12 +101,13 @@ function mapPost(row: DbPost): AnimalPost {
   };
 }
 
+// shelters has two FKs to profiles (profile_id + verified_by) — must disambiguate.
 const selectShape = `
   id, name, species, breed, sex, age_months, age_group, size, description,
   status, traits, country_code, region, city, like_count, comment_count, created_at,
   shelters!inner (
     id, handle, org_name, verification_status, city, region, country_code,
-    profiles ( avatar_url )
+    profiles!shelters_profile_id_fkey ( avatar_url )
   ),
   post_media ( id, storage_path, alt_text, position, width, height )
 `;

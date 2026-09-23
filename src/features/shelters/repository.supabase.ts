@@ -38,9 +38,10 @@ function mapShelter(row: DbShelter, animalCount = 0): Shelter {
   };
 }
 
+// Disambiguate: profile_id vs verified_by both point at profiles.
 const selectShape = `
   id, handle, org_name, bio, links, country_code, region, city, verification_status,
-  profiles ( avatar_url )
+  profiles!shelters_profile_id_fkey ( avatar_url )
 `;
 
 export const supabaseSheltersRepository: SheltersRepository = {
