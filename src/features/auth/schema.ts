@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Email used for magic-link sign-in / sign-up. */
+/** Email used for magic-link and password auth. */
 export const emailSchema = z
   .string()
   .trim()
@@ -30,6 +30,12 @@ export const orgNameSchema = z
   .min(1, "Organization name is required")
   .max(120, "Organization name must be 120 characters or fewer");
 
+/** Password for email+password auth (Supabase default min is 6; we use 8). */
+export const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(72, "Password must be 72 characters or fewer");
+
 export const magicLinkAdopterSchema = z.object({
   email: emailSchema,
   displayName: displayNameSchema,
@@ -49,6 +55,31 @@ export const magicLinkSignInSchema = z.object({
   next: z.string().optional(),
 });
 
+export const passwordSignInSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  next: z.string().optional(),
+});
+
+export const passwordAdopterSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  displayName: displayNameSchema,
+  next: z.string().optional(),
+});
+
+export const passwordShelterSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  displayName: displayNameSchema,
+  orgName: orgNameSchema,
+  handle: handleSchema,
+  next: z.string().optional(),
+});
+
 export type MagicLinkAdopterInput = z.infer<typeof magicLinkAdopterSchema>;
 export type MagicLinkShelterInput = z.infer<typeof magicLinkShelterSchema>;
 export type MagicLinkSignInInput = z.infer<typeof magicLinkSignInSchema>;
+export type PasswordSignInInput = z.infer<typeof passwordSignInSchema>;
+export type PasswordAdopterInput = z.infer<typeof passwordAdopterSchema>;
+export type PasswordShelterInput = z.infer<typeof passwordShelterSchema>;

@@ -54,7 +54,7 @@ export default async function LoginPage({ searchParams }: Props) {
         </Link>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="mt-2 text-sm text-muted">
-          We will email you a one-time magic link. No password needed.
+          Use your password, or a one-time magic link if you prefer.
         </p>
       </div>
 

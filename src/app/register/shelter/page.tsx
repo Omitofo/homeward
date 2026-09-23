@@ -22,8 +22,8 @@ export default function ShelterRegisterPage() {
           Register your rescue
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Create a shelter account to post animals. Verification is a separate
-          step after you join.
+          Create a shelter account with email and password to post animals.
+          Verification is a separate step after you join.
         </p>
       </div>
 

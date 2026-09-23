@@ -80,6 +80,8 @@ export function rateLimit(
 /** Preset keys / limits aligned with docs/07-SECURITY.md. */
 export const RATE_LIMITS = {
   magicLink: { limit: 5, windowMs: 15 * 60_000 },
+  /** Password sign-in / sign-up attempts per email. */
+  passwordAuth: { limit: 10, windowMs: 15 * 60_000 },
   comment: { limit: 20, windowMs: 60_000 },
   message: { limit: 30, windowMs: 60_000 },
   upload: { limit: 30, windowMs: 60 * 60_000 },

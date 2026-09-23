@@ -30,7 +30,8 @@ export default async function RegisterPage({ searchParams }: Props) {
           Join as an adopter
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Like, comment, and message shelters. We only need your name and email.
+          Like, comment, and message shelters. Set a password so you can sign in
+          without waiting on email limits.
         </p>
       </div>
 
