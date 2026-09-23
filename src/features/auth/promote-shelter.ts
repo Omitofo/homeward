@@ -21,10 +21,9 @@ function asNonEmptyString(value: unknown): string | null {
 
 /**
  * Promote (or complete) a shelter account after sign-up confirmation.
- * Uses the service-role client because `role` must not be client-writable.
- *
- * Accepts user_metadata *and/or* a cookie-derived intent payload — Supabase
- * only applies OTP/signUp `data` to user_metadata when the user is first created.
+ * Uses the service-role client + admin_promote_shelter RPC (SECURITY DEFINER)
+ * so profiles.role can change even when the lock trigger does not see a
+ * service_role JWT claim correctly.
  */
 export async function ensureShelterProfile(
   userId: string,
@@ -69,6 +68,20 @@ export async function ensureShelterProfile(
     };
   }
 
+  const { error: rpcError } = await admin.rpc("admin_promote_shelter", {
+    p_user_id: userId,
+    p_handle: handle,
+    p_org_name: orgName,
+    p_display_name: displayName,
+  });
+
+  if (!rpcError) {
+    return { ok: true };
+  }
+
+  console.error("[auth] admin_promote_shelter RPC failed", rpcError.message);
+
+  // Fallback for projects that have not applied the RPC migration yet.
   const { data: existingShelter, error: existingErr } = await admin
     .from("shelters")
     .select("id")
@@ -77,13 +90,18 @@ export async function ensureShelterProfile(
 
   if (existingErr) {
     console.error("[auth] shelter lookup failed", existingErr.message);
-    return { ok: false, error: "Could not verify shelter profile." };
+    return {
+      ok: false,
+      error:
+        "Could not promote shelter. Apply migration 20260923200000_promote_shelter_rpc.sql in Supabase, then try again.",
+    };
   }
 
-  // Always force role to shelter when completing this flow (idempotent).
-  const profileUpdate: { role: "shelter"; display_name?: string } = {
-    role: "shelter",
-  };
+  const profileUpdate: { role: "shelter"; display_name?: string; deleted_at: null } =
+    {
+      role: "shelter",
+      deleted_at: null,
+    };
   if (displayName) profileUpdate.display_name = displayName;
 
   const { error: roleError } = await admin
@@ -92,13 +110,11 @@ export async function ensureShelterProfile(
     .eq("id", userId);
 
   if (roleError) {
-    console.error("[auth] role promote failed", roleError.message);
-    const locked = roleError.message.toLowerCase().includes("not client-writable");
+    console.error("[auth] role promote fallback failed", roleError.message);
     return {
       ok: false,
-      error: locked
-        ? "Could not set shelter role (DB lock trigger). Apply migration 20260923180000_fix_role_lock_service_role.sql in Supabase SQL editor, then try again."
-        : "Could not set shelter role. Check profiles RLS / service role.",
+      error:
+        "Could not set shelter role. Run supabase/migrations/20260923200000_promote_shelter_rpc.sql in the SQL editor, then register again.",
     };
   }
 
