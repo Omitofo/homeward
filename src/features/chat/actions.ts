@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/features/auth/session";
 import type { ActionResult } from "@/features/auth/types";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, RATE_LIMITS } from "@/lib/security";
 import { mockShelters } from "@/data/mock/shelters";
 import {
   sendMessageSchema,
@@ -216,6 +217,14 @@ export async function startConversation(
     };
   }
 
+  const limited = rateLimit(`start-chat:${profile.id}`, RATE_LIMITS.startChat);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      error: `Too many new chats. Wait about ${limited.retryAfterSec}s and try again.`,
+    };
+  }
+
   const parsed = startConversationSchema.safeParse(raw);
   if (!parsed.success) {
     return {
@@ -333,6 +342,14 @@ export async function sendMessage(
 > {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
+  const limited = rateLimit(`message:${profile.id}`, RATE_LIMITS.message);
+  if (!limited.ok) {
+    return {
+      ok: false,
+      error: `Too many messages. Wait about ${limited.retryAfterSec}s and try again.`,
+    };
+  }
 
   const parsed = sendMessageSchema.safeParse(raw);
   if (!parsed.success) {
