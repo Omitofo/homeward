@@ -31,6 +31,8 @@ Work in small vertical slices so the repo is always in a runnable state.
 | Code style, testing, git, DoD     | `08-ENGINEERING-STANDARDS.md`          |
 | Picking the next task             | `09-ROADMAP.md`                        |
 | "Why did we choose X?"            | `10-DECISIONS.md`                      |
+| Production deploy                 | `12-DEPLOY.md`                         |
+| Live presentation                 | `13-DEMO-SCRIPT.md`, `SCREENSHOTS.md`  |
 
 ## Non-negotiable rules
 - Follow the folder structure in `03-ARCHITECTURE.md`. Change it only with a logged decision.
