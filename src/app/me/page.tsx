@@ -22,6 +22,8 @@ export default async function MePage() {
   }
 
   const saved = await listSavedSearches();
+  const isShelter =
+    profile.role === "shelter" || profile.role === "admin";
 
   return (
     <div className="flex min-h-full flex-col">
@@ -52,6 +54,17 @@ export default async function MePage() {
             <dd className="mt-0.5 font-medium capitalize">{profile.role}</dd>
           </div>
         </dl>
+
+        {isShelter ? (
+          <p className="mt-6">
+            <Link
+              href="/studio"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Open Studio
+            </Link>
+          </p>
+        ) : null}
 
         <section className="mt-10 space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
