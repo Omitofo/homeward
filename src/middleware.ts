@@ -5,6 +5,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * Refreshes the Supabase auth session on every matched request so Server
  * Components and Route Handlers always see a valid cookie pair.
  * Also applies lightweight route guards for authenticated areas.
+ *
+ * Security headers are set in next.config.ts (applies to all routes).
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({

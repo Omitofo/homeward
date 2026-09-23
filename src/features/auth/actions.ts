@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit, RATE_LIMITS } from "@/lib/security";
 import {
   magicLinkAdopterSchema,
   magicLinkShelterSchema,
@@ -43,6 +44,17 @@ async function sendMagicLink(params: {
   data?: Record<string, string>;
   shelterIntent?: { handle: string; orgName: string; displayName: string };
 }): Promise<ActionResult> {
+  const limited = rateLimit(
+    `magic-link:${params.email.toLowerCase()}`,
+    RATE_LIMITS.magicLink,
+  );
+  if (!limited.ok) {
+    return {
+      ok: false,
+      error: `Too many login emails sent. Wait about ${limited.retryAfterSec}s and try again.`,
+    };
+  }
+
   const supabase = await createClient();
   if (!supabase) {
     return {
