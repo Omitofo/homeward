@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, EmptyStateLink } from "@/components/ui";
 import { postsRepository } from "@/features/posts";
 import { PostComposer } from "@/features/posts/composer";
 import { getMockCreatedById } from "@/features/posts/composer/mock-store";
@@ -34,11 +33,34 @@ export default async function StudioEditPostPage({ params }: Props) {
   }
 
   // Prefer in-session mock creates, then repository (seeded mock / Supabase)
-  const post =
-    getMockCreatedById(id) ?? (await postsRepository.getById(id));
+  let post = getMockCreatedById(id) ?? null;
+  if (!post) {
+    try {
+      post = await postsRepository.getById(id);
+    } catch (err) {
+      console.error("[studio/post] getById failed", err);
+      post = null;
+    }
+  }
 
   if (!post || post.shelter.id !== ctx.shelter.id) {
-    notFound();
+    return (
+      <>
+        <StudioNav pathname="/studio" orgName={ctx.shelter.orgName} />
+        <main id="main-content" className="mx-auto max-w-3xl px-4 py-10">
+          <EmptyState
+            title="Post not available in Studio"
+            description="The listing may still be public. Open it from Explore or your posts list."
+            action={
+              <div className="flex flex-wrap gap-3">
+                <EmptyStateLink href="/studio">Your posts</EmptyStateLink>
+                <EmptyStateLink href={`/post/${id}`}>Public page</EmptyStateLink>
+              </div>
+            }
+          />
+        </main>
+      </>
+    );
   }
 
   return (

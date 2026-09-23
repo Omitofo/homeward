@@ -216,7 +216,13 @@ export function PostComposer({ mode, initial, defaults }: Props) {
         return;
       }
 
-      router.push(`/studio/post/${result.data.id}`);
+      // Public post page is reliable after create; studio edit can 404 if the
+      // follow-up fetch races or ownership join fails briefly.
+      if (mode === "create") {
+        router.push(`/post/${result.data.id}`);
+      } else {
+        router.push(`/studio/post/${result.data.id}`);
+      }
       router.refresh();
     } catch {
       setError("Something went wrong. Try again.");
