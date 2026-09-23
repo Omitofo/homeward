@@ -20,11 +20,11 @@ function asNonEmptyString(value: unknown): string | null {
 }
 
 /**
- * Promote (or complete) a shelter account after magic-link confirmation.
+ * Promote (or complete) a shelter account after sign-up confirmation.
  * Uses the service-role client because `role` must not be client-writable.
  *
  * Accepts user_metadata *and/or* a cookie-derived intent payload — Supabase
- * only applies OTP `data` to user_metadata when the user is first created.
+ * only applies OTP/signUp `data` to user_metadata when the user is first created.
  */
 export async function ensureShelterProfile(
   userId: string,
@@ -93,9 +93,12 @@ export async function ensureShelterProfile(
 
   if (roleError) {
     console.error("[auth] role promote failed", roleError.message);
+    const locked = roleError.message.toLowerCase().includes("not client-writable");
     return {
       ok: false,
-      error: "Could not set shelter role. Check profiles RLS / service role.",
+      error: locked
+        ? "Could not set shelter role (DB lock trigger). Apply migration 20260923180000_fix_role_lock_service_role.sql in Supabase SQL editor, then try again."
+        : "Could not set shelter role. Check profiles RLS / service role.",
     };
   }
 
@@ -115,7 +118,6 @@ export async function ensureShelterProfile(
   });
 
   if (insertError) {
-    // Unique handle collision from a race or prior partial signup
     console.error("[auth] shelter insert failed", insertError.message);
     return {
       ok: false,
