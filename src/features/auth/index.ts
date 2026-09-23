@@ -1,8 +1,11 @@
 export { getCurrentProfile, isAuthenticated } from "./session";
 export {
   signInWithMagicLink,
+  signInWithPassword,
   signUpAdopter,
+  signUpAdopterWithPassword,
   signUpShelter,
+  signUpShelterWithPassword,
   signOut,
 } from "./actions";
 export { exportAccountData, deleteAccount } from "./account-actions";

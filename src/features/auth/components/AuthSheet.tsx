@@ -26,7 +26,7 @@ export function AuthSheet({ open, onOpenChange, intent, next }: Props) {
   const returnTo = intent?.returnTo ?? next ?? "/explore";
   const benefit = intent
     ? intentBenefitCopy(intent.type)
-    : "Sign in with a magic link — no password needed.";
+    : "Sign in with a password or a magic link.";
 
   useEffect(() => {
     if (open && intent) {
