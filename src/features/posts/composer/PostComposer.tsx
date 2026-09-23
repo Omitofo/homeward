@@ -297,7 +297,7 @@ export function PostComposer({ mode, initial, defaults }: Props) {
                       ↑
                     </Button>
                     <Button
-                      type="button""
+                      type="button"
                       variant="ghost"
                       size="sm"
                       disabled={i === media.length - 1}
