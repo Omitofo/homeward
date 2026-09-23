@@ -37,9 +37,9 @@ export default function AboutPage() {
           href="mailto:hello@homeward.example"
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          hello@homeward.example
+          	
+          rescue.pawtrol.adopt@gmail.com
         </a>
-        . Replace this address with your real contact before production launch.
       </p>
 
       <h2 className="text-base font-semibold text-foreground">Legal</h2>
