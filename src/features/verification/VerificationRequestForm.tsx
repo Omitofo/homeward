@@ -16,6 +16,7 @@ export function VerificationRequestForm() {
   const [docs, setDocs] = useState<VerificationDocInput[]>([]);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadLabel, setUploadLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const onPick = useCallback(async (fileList: FileList | null) => {
@@ -36,6 +37,7 @@ export function VerificationRequestForm() {
           setError(`File too large (max ${MAX_DOC_BYTES / (1024 * 1024)} MB)`);
           continue;
         }
+        setUploadLabel(file.name);
         const fd = new FormData();
         fd.set("file", file);
         const result = await uploadVerificationDoc(fd);
@@ -46,9 +48,12 @@ export function VerificationRequestForm() {
         setDocs((prev) => [...prev, result.data]);
       }
     } catch {
-      setError("Upload failed");
+      setError(
+        "Upload failed or timed out. Try a smaller PDF/image (under 10 MB), or check the server terminal for errors.",
+      );
     } finally {
       setUploading(false);
+      setUploadLabel(null);
       if (inputRef.current) inputRef.current.value = "";
     }
   }, [docs.length]);
@@ -100,9 +105,9 @@ export function VerificationRequestForm() {
       <div>
         <h3 className="text-sm font-medium">Supporting documents</h3>
         <p className="mt-1 text-xs text-muted">
-          Registration certificate, website screenshots, or other proof. PDF or
-          images · max {MAX_DOC_BYTES / (1024 * 1024)} MB · up to 5 files · stored
-          privately (not public).
+          PDF or images only (JPEG / PNG / WebP) — not Word/TXT. We validate
+          magic bytes server-side; files stay in a private bucket. Max{" "}
+          {MAX_DOC_BYTES / (1024 * 1024)} MB · up to 5 files.
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -122,7 +127,11 @@ export function VerificationRequestForm() {
             disabled={uploading || docs.length >= 5}
             onClick={() => inputRef.current?.click()}
           >
-            {uploading ? "Uploading…" : "Add document"}
+            {uploading
+              ? uploadLabel
+                ? `Uploading ${uploadLabel}…`
+                : "Uploading…"
+              : "Add document"}
           </Button>
         </div>
 

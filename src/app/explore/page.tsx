@@ -49,6 +49,9 @@ export default async function ExplorePage({ searchParams }: Props) {
     Boolean(parsed.q) ||
     Boolean(parsed.country);
 
+  const isShelter =
+    profile?.role === "shelter" || profile?.role === "admin";
+
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
@@ -60,6 +63,14 @@ export default async function ExplorePage({ searchParams }: Props) {
             <span className="hidden text-sm text-muted sm:inline">Explore</span>
           </div>
           <div className="flex items-center gap-3">
+            {isShelter ? (
+              <Link
+                href="/studio"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Studio
+              </Link>
+            ) : null}
             {profile ? (
               <Link
                 href="/me"

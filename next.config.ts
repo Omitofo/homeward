@@ -36,6 +36,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Default server-action body is ~1MB; verification docs allow up to 10MB.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "12mb",
+    },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
