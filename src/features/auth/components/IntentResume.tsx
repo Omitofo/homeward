@@ -14,7 +14,6 @@ type Props = {
 
 /**
  * After magic-link return, surface a short confirmation for the pending intent.
- * Real action completion (like / contact) lands in Phase 4 / 6.
  */
 export function IntentResume({ signedIn }: Props) {
   const [intent, setIntent] = useState<AuthIntent | null>(null);
@@ -31,11 +30,11 @@ export function IntentResume({ signedIn }: Props) {
 
   const message =
     intent.type === "like"
-      ? "You're signed in. Likes go live in the next engagement phase — this animal is ready when they do."
+      ? "You're signed in. You can like this animal now."
       : intent.type === "contact"
-        ? "You're signed in. Messaging the shelter will open here once chat ships."
+        ? "You're signed in. Use Contact shelter to start a chat."
         : intent.type === "save"
-          ? "You're signed in. Saved animals arrive with the adopter area."
+          ? "You're signed in. Tap Save to keep this animal in Your account."
           : "You're signed in. You can continue where you left off.";
 
   return (
