@@ -21,6 +21,7 @@ import {
   findMockConversation,
   getMockConversation,
   listMockConversationsForUser,
+  totalMockUnreadForUser,
   upsertMockConversation,
 } from "./mock-store";
 
@@ -76,6 +77,40 @@ async function resolvePostCards(
     }),
   );
   return cards;
+}
+
+/** Total unread messages for the current user (all conversations). */
+export async function getUnreadMessageCount(): Promise<number> {
+  const profile = await getCurrentProfile();
+  if (!profile) return 0;
+
+  if (useMock) {
+    return totalMockUnreadForUser(profile.id);
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return 0;
+
+  const { data: convs, error: convError } = await supabase
+    .from("conversations")
+    .select("id")
+    .or(`adopter_id.eq.${profile.id},shelter_profile_id.eq.${profile.id}`);
+
+  if (convError || !convs?.length) return 0;
+
+  const ids = convs.map((c) => c.id);
+  const { count, error } = await supabase
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .in("conversation_id", ids)
+    .neq("sender_id", profile.id)
+    .is("read_at", null);
+
+  if (error) {
+    console.error("[getUnreadMessageCount]", error.message);
+    return 0;
+  }
+  return count ?? 0;
 }
 
 export async function listConversations(): Promise<
@@ -290,8 +325,6 @@ export async function startConversation(
     return { ok: false, error: "Cannot message yourself" };
   }
 
-  // Always one thread per adopter + shelter. Animal context is carried in
-  // intro messages (with ⟦post:id⟧ marker for the card UI).
   if (useMock) {
     const existing = findMockConversation(profile.id, shelterProfileId);
     if (existing) {

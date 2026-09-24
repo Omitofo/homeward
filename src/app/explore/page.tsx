@@ -6,6 +6,7 @@ import { FilterBar } from "@/features/filters/FilterBar";
 import { FeedInfinite } from "@/features/feed/FeedInfinite";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { getCurrentProfile } from "@/features/auth";
+import { MessagesNavLink } from "@/features/chat";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -73,12 +74,7 @@ export default async function ExplorePage({ searchParams }: Props) {
             ) : null}
             {profile ? (
               <>
-                <Link
-                  href="/messages"
-                  className="text-sm font-medium text-muted hover:text-foreground"
-                >
-                  Messages
-                </Link>
+                <MessagesNavLink />
                 <Link
                   href="/me"
                   className="text-sm font-medium text-muted hover:text-foreground"

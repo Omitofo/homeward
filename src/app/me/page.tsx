@@ -10,6 +10,7 @@ import {
   SavedAnimalsGrid,
 } from "@/features/engagement";
 import { postsRepository } from "@/features/posts";
+import { MessagesNavLink } from "@/features/chat";
 import { siteConfig } from "@/config/site";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -30,7 +31,6 @@ export default async function MePage() {
   const [saved, savedAnimals, mockPage] = await Promise.all([
     listSavedSearches(),
     isShelter ? Promise.resolve([]) : listSavedAnimals(),
-    // Mock candidates so client grid can resolve localStorage ids
     postsRepository.list({ limit: 48 }),
   ]);
 
@@ -44,12 +44,7 @@ export default async function MePage() {
             {siteConfig.name}
           </Link>
           <div className="flex items-center gap-3">
-            <Link
-              href="/messages"
-              className="text-sm font-medium text-muted hover:text-foreground"
-            >
-              Messages
-            </Link>
+            <MessagesNavLink />
             <SignOutButton />
           </div>
         </div>
