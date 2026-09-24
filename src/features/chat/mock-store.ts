@@ -11,7 +11,13 @@ export function listMockConversationsForUser(
 ): ConversationSummary[] {
   return store
     .filter((c) => c.adopterId === userId || c.shelterProfileId === userId)
-    .map(({ messages: _, ...summary }) => summary)
+    .map((c) => {
+      const { messages, ...summary } = c;
+      const unreadCount = messages.filter(
+        (m) => m.senderId !== userId && !m.readAt,
+      ).length;
+      return { ...summary, unreadCount };
+    })
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
@@ -22,6 +28,14 @@ export function getMockConversation(
   const c = store.find((x) => x.id === id);
   if (!c) return null;
   if (c.adopterId !== userId && c.shelterProfileId !== userId) return null;
+  // Mark peer messages as read when opening the thread (mirror Supabase path)
+  const now = new Date().toISOString();
+  for (const m of c.messages) {
+    if (m.senderId !== userId && !m.readAt) {
+      m.readAt = now;
+    }
+  }
+  c.unreadCount = 0;
   return c;
 }
 
@@ -53,4 +67,12 @@ export function appendMockMessage(
   c.messages.push(message);
   c.lastMessagePreview = preview;
   c.updatedAt = message.createdAt;
+  // Unread for the peer is derived in listMockConversationsForUser
+}
+
+export function totalMockUnreadForUser(userId: string): number {
+  return listMockConversationsForUser(userId).reduce(
+    (sum, c) => sum + c.unreadCount,
+    0,
+  );
 }
