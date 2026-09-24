@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { ChatMessage } from "./schema";
+import type { ChatMessage, ChatPostCard } from "./schema";
+import {
+  displayMessageBody,
+  extractPostIdsFromBody,
+} from "./schema";
 import { MessageComposer } from "./MessageComposer";
+import { AnimalChatCard } from "./AnimalChatCard";
 
 type Props = {
   conversationId: string;
@@ -11,6 +16,8 @@ type Props = {
   currentUserId: string;
   /** Display name of the other participant (for screen-reader labels) */
   peerName?: string;
+  /** Post cards keyed by post id (from message markers) */
+  postCards?: Record<string, ChatPostCard>;
 };
 
 export function ChatThread({
@@ -18,6 +25,7 @@ export function ChatThread({
   initialMessages,
   currentUserId,
   peerName = "them",
+  postCards = {},
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -102,27 +110,43 @@ export function ChatThread({
         {messages.map((m) => {
           const mine = m.senderId === currentUserId;
           const who = mine ? "You" : peerName;
+          const text = displayMessageBody(m.body);
+          const postIds = extractPostIdsFromBody(m.body);
+          const cards = postIds
+            .map((id) => postCards[id])
+            .filter(Boolean) as ChatPostCard[];
+
           return (
-            <li
-              key={m.id}
-              className={
-                mine
-                  ? "ml-8 self-end rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground"
-                  : "mr-8 self-start rounded-lg border border-border bg-card px-3 py-2 text-sm"
-              }
-            >
-              <span className="sr-only">{who} said: </span>
-              <p className="whitespace-pre-wrap">{m.body}</p>
-              <time
-                className={
-                  mine
-                    ? "mt-1 block text-[10px] opacity-80"
-                    : "mt-1 block text-[10px] text-muted"
-                }
-                dateTime={m.createdAt}
-              >
-                {new Date(m.createdAt).toLocaleString()}
-              </time>
+            <li key={m.id} className="flex flex-col gap-1.5">
+              {text ? (
+                <div
+                  className={
+                    mine
+                      ? "ml-8 self-end rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground"
+                      : "mr-8 self-start rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                  }
+                >
+                  <span className="sr-only">{who} said: </span>
+                  <p className="whitespace-pre-wrap">{text}</p>
+                  <time
+                    className={
+                      mine
+                        ? "mt-1 block text-[10px] opacity-80"
+                        : "mt-1 block text-[10px] text-muted"
+                    }
+                    dateTime={m.createdAt}
+                  >
+                    {new Date(m.createdAt).toLocaleString()}
+                  </time>
+                </div>
+              ) : null}
+              {cards.map((post) => (
+                <AnimalChatCard
+                  key={`${m.id}-${post.id}`}
+                  post={post}
+                  align={mine ? "end" : "start"}
+                />
+              ))}
             </li>
           );
         })}

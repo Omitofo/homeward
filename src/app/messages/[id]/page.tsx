@@ -35,7 +35,7 @@ export default async function ConversationPage({ params }: Props) {
     );
   }
 
-  const { messages, peerName } = result.data;
+  const { messages, peerName, postCards } = result.data;
 
   return (
     <main
@@ -51,8 +51,8 @@ export default async function ConversationPage({ params }: Props) {
           </p>
           <h1 className="text-xl font-semibold tracking-tight">{peerName}</h1>
           <p className="text-xs text-muted">
-            One thread with this rescue. Animal context appears in the messages
-            when you contact from a post.
+            One thread with this rescue. Animal cards appear when you contact
+            from a post.
           </p>
         </div>
       </div>
@@ -71,6 +71,7 @@ export default async function ConversationPage({ params }: Props) {
         initialMessages={messages}
         currentUserId={profile.id}
         peerName={peerName}
+        postCards={postCards}
       />
     </main>
   );

@@ -19,10 +19,11 @@ type Props = {
   size?: "sm" | "md" | "lg";
 };
 
+/** Human text + machine marker so the thread can render an animal card */
 function buildInitialMessage(postId?: string, animalName?: string): string {
   if (postId) {
     const label = animalName?.trim() || "this animal";
-    return `Hi! I'm interested in ${label} (/post/${postId}) and would love to learn more.`;
+    return `Hi! I'm interested in ${label} and would love to learn more.\n\n⟦post:${postId}⟧`;
   }
   return "Hi! I'd like to learn more about adopting through your rescue.";
 }

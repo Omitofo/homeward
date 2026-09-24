@@ -7,10 +7,13 @@ import type { ActionResult } from "@/features/auth/types";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, RATE_LIMITS } from "@/lib/security";
 import { mockShelters } from "@/data/mock/shelters";
+import { postsRepository } from "@/features/posts";
 import {
   sendMessageSchema,
   startConversationSchema,
+  extractPostIdsFromBody,
   type ChatMessage,
+  type ChatPostCard,
   type ConversationSummary,
 } from "./schema";
 import {
@@ -43,6 +46,36 @@ async function resolveShelterProfileId(
 
   if (!data) return null;
   return { profileId: data.profile_id, orgName: data.org_name };
+}
+
+async function resolvePostCards(
+  messages: ChatMessage[],
+): Promise<Record<string, ChatPostCard>> {
+  const ids = new Set<string>();
+  for (const m of messages) {
+    for (const id of extractPostIdsFromBody(m.body)) {
+      ids.add(id);
+    }
+  }
+  if (ids.size === 0) return {};
+
+  const cards: Record<string, ChatPostCard> = {};
+  await Promise.all(
+    [...ids].map(async (id) => {
+      const post = await postsRepository.getById(id);
+      if (!post) return;
+      const media = post.media[0];
+      cards[id] = {
+        id: post.id,
+        name: post.name,
+        breed: post.breed,
+        status: post.status,
+        imageUrl: media?.url ?? null,
+        imageAlt: media?.altText || post.name,
+      };
+    }),
+  );
+  return cards;
 }
 
 export async function listConversations(): Promise<
@@ -122,7 +155,12 @@ export async function listConversations(): Promise<
 export async function getConversationMessages(
   conversationId: string,
 ): Promise<
-  ActionResult<{ messages: ChatMessage[]; peerName: string; postId: string | null }>
+  ActionResult<{
+    messages: ChatMessage[];
+    peerName: string;
+    postId: string | null;
+    postCards: Record<string, ChatPostCard>;
+  }>
 > {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
@@ -130,12 +168,14 @@ export async function getConversationMessages(
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
     if (!c) return { ok: false, error: "Conversation not found" };
+    const postCards = await resolvePostCards(c.messages);
     return {
       ok: true,
       data: {
         messages: c.messages,
         peerName: c.peerName,
         postId: c.postId,
+        postCards,
       },
     };
   }
@@ -188,19 +228,24 @@ export async function getConversationMessages(
     .neq("sender_id", profile.id)
     .is("read_at", null);
 
+  const messages: ChatMessage[] = (msgs ?? []).map((m) => ({
+    id: m.id,
+    conversationId: m.conversation_id,
+    senderId: m.sender_id,
+    body: m.body,
+    createdAt: m.created_at,
+    readAt: m.read_at,
+  }));
+
+  const postCards = await resolvePostCards(messages);
+
   return {
     ok: true,
     data: {
       peerName: peer?.display_name ?? "Member",
       postId: conv.post_id,
-      messages: (msgs ?? []).map((m) => ({
-        id: m.id,
-        conversationId: m.conversation_id,
-        senderId: m.sender_id,
-        body: m.body,
-        createdAt: m.created_at,
-        readAt: m.read_at,
-      })),
+      messages,
+      postCards,
     },
   };
 }
@@ -246,7 +291,7 @@ export async function startConversation(
   }
 
   // Always one thread per adopter + shelter. Animal context is carried in
-  // intro messages, not as a single sticky post_id on the conversation.
+  // intro messages (with ⟦post:id⟧ marker for the card UI).
   if (useMock) {
     const existing = findMockConversation(profile.id, shelterProfileId);
     if (existing) {
@@ -312,7 +357,6 @@ export async function startConversation(
       .insert({
         adopter_id: profile.id,
         shelter_profile_id: shelterProfileId,
-        // Optional first post for analytics; UI no longer pins it as the only context
         post_id: postId ?? null,
       })
       .select("id")
@@ -325,8 +369,6 @@ export async function startConversation(
     conversationId = created.id;
   }
 
-  // Always post the intro when provided (including reopening an existing thread
-  // from a different animal or from the shelter page).
   if (initialMessage) {
     await supabase.from("messages").insert({
       conversation_id: conversationId,

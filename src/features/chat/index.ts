@@ -7,4 +7,9 @@ export {
 export { MessageComposer } from "./MessageComposer";
 export { StartChatButton } from "./StartChatButton";
 export { ChatThread } from "./ChatThread";
-export type { ConversationSummary, ChatMessage } from "./schema";
+export { AnimalChatCard } from "./AnimalChatCard";
+export type {
+  ConversationSummary,
+  ChatMessage,
+  ChatPostCard,
+} from "./schema";
