@@ -63,12 +63,12 @@ export function CardCarousel({
       className="relative h-full w-full"
       role="group"
       aria-roledescription="carousel"
-      aria-label={`${name} photos`}
+      aria-label={name + " photos"}
       onKeyDown={onKeyDown}
     >
       <Image
         src={current.url}
-        alt={current.altText || `${name} photo ${index + 1}`}
+        alt={current.altText || (name + " photo " + (index + 1))}
         fill
         sizes={sizes}
         className="object-cover object-center"
@@ -115,7 +115,7 @@ export function CardCarousel({
                   "h-2.5 min-w-2.5 rounded-full transition-all",
                   i === index ? "w-4 bg-primary" : "w-2.5 bg-background/80",
                 )}
-                aria-label={`Photo ${i + 1} of ${count}`}
+                aria-label={"Photo " + (i + 1) + " of " + count}
                 aria-current={i === index ? "true" : undefined}
               />
             ))}
