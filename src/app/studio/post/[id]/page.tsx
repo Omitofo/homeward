@@ -74,6 +74,11 @@ export default async function StudioEditPostPage({ params }: Props) {
           Update details, photos, or status for {post.name}.
         </p>
 
+        <p className="mt-3 flex flex-wrap gap-4 text-sm text-muted">
+          <span title="Likes from adopters">♥ {post.likeCount} likes</span>
+          <span>{post.commentCount} comments</span>
+        </p>
+
         <div className="mt-8">
           <PostComposer mode="edit" initial={post} />
         </div>

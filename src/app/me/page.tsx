@@ -7,9 +7,7 @@ import {
   listSavedSearches,
   SavedSearchesList,
   listSavedAnimals,
-  listLikedAnimals,
   SavedAnimalsGrid,
-  LikedAnimalsGrid,
 } from "@/features/engagement";
 import { postsRepository } from "@/features/posts";
 import { siteConfig } from "@/config/site";
@@ -29,11 +27,10 @@ export default async function MePage() {
   const isShelter =
     profile.role === "shelter" || profile.role === "admin";
 
-  const [saved, savedAnimals, likedAnimals, mockPage] = await Promise.all([
+  const [saved, savedAnimals, mockPage] = await Promise.all([
     listSavedSearches(),
     isShelter ? Promise.resolve([]) : listSavedAnimals(),
-    isShelter ? Promise.resolve([]) : listLikedAnimals(),
-    // Mock candidates so client grids can resolve localStorage ids
+    // Mock candidates so client grid can resolve localStorage ids
     postsRepository.list({ limit: 48 }),
   ]);
 
@@ -103,17 +100,6 @@ export default async function MePage() {
 
             <section className="mt-10 space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                Liked animals
-              </h2>
-              <LikedAnimalsGrid
-                initial={likedAnimals}
-                userId={profile.id}
-                mockCandidates={mockCandidates}
-              />
-            </section>
-
-            <section className="mt-10 space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
                 Saved searches
               </h2>
               <SavedSearchesList initial={saved} userId={profile.id} />
@@ -122,10 +108,15 @@ export default async function MePage() {
         ) : (
           <section className="mt-10 space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Saved searches
+              Adopter tools
             </h2>
             <p className="text-sm text-muted">
-              Saved searches and animal favorites are for adopter accounts.
+              Saved animals and searches are for adopter accounts. See like and
+              comment counts on each post in{" "}
+              <Link href="/studio" className="font-medium text-primary hover:underline">
+                Studio
+              </Link>
+              .
             </p>
           </section>
         )}

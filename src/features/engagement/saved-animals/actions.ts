@@ -133,36 +133,3 @@ export async function listSavedAnimals(): Promise<AnimalPost[]> {
   }
   return posts;
 }
-
-/** List full animal posts the current user has liked (newest first). */
-export async function listLikedAnimals(): Promise<AnimalPost[]> {
-  const profile = await getCurrentProfile();
-  if (!profile) return [];
-
-  if (useMock) return [];
-
-  const supabase = await createClient();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from("likes")
-    .select("post_id, created_at")
-    .eq("user_id", profile.id)
-    .order("created_at", { ascending: false })
-    .limit(48);
-
-  if (error) {
-    console.error("[likes] list for me", error.message);
-    return [];
-  }
-
-  const ids = (data ?? []).map((r) => r.post_id as string);
-  if (ids.length === 0) return [];
-
-  const posts: AnimalPost[] = [];
-  for (const id of ids) {
-    const post = await postsRepository.getById(id);
-    if (post) posts.push(post);
-  }
-  return posts;
-}
