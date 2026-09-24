@@ -12,6 +12,7 @@ import {
   listComments,
   CommentSection,
 } from "@/features/engagement";
+import { MessagesNavLink } from "@/features/chat";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
@@ -121,12 +122,7 @@ export default async function PostDetailPage({ params }: Props) {
           <div className="flex items-center gap-3">
             {profile ? (
               <>
-                <Link
-                  href="/messages"
-                  className="text-sm font-medium text-muted hover:text-foreground"
-                >
-                  Messages
-                </Link>
+                <MessagesNavLink />
                 <Link
                   href="/me"
                   className="text-sm font-medium text-muted hover:text-foreground"

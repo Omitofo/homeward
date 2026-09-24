@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignOutButton } from "@/features/auth";
+import { MessagesNavLink } from "@/features/chat";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
 
@@ -16,7 +17,7 @@ const links: StudioLink[] = [
   { href: "/studio/verification", label: "Verification" },
 ];
 
-export function StudioNav({
+export async function StudioNav({
   pathname,
   orgName,
 }: {
@@ -43,7 +44,10 @@ export function StudioNav({
             </span>
           )}
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-3">
+          <MessagesNavLink />
+          <SignOutButton />
+        </div>
       </div>
       <nav
         className="mx-auto flex max-w-3xl gap-1 overflow-x-auto px-4 pb-3"
@@ -58,7 +62,6 @@ export function StudioNav({
               key={link.href}
               href={link.href}
               className={cn(
-                // min 44px touch height on mobile
                 "inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors",
                 active
                   ? "bg-secondary text-foreground"
