@@ -21,6 +21,16 @@ export default async function MessagesPage() {
 
   return (
     <main id="main-content" className="mx-auto max-w-2xl px-4 py-8">
+      <p className="mb-4 text-sm">
+        <Link href="/me" className="text-primary hover:underline">
+          ← Back to account
+        </Link>
+        <span className="mx-2 text-muted">·</span>
+        <Link href="/explore" className="text-muted hover:text-foreground hover:underline">
+          Explore
+        </Link>
+      </p>
+
       <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
       <p className="mt-1 text-sm text-muted">
         Private chats between adopters and rescues. Never send money before
@@ -51,12 +61,12 @@ export default async function MessagesPage() {
       ) : null}
 
       {items.length > 0 ? (
-        <ul className="mt-8 divide-y divide-border rounded-lg border border-border bg-card">
+        <ul className="mt-8 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
           {items.map((c) => (
             <li key={c.id}>
               <Link
                 href={`/messages/${c.id}`}
-                className="flex flex-col gap-0.5 px-4 py-3 hover:bg-secondary/40"
+                className="flex flex-col gap-0.5 px-4 py-3 transition-colors hover:bg-secondary/40"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium">{c.peerName}</span>
