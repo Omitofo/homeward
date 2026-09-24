@@ -72,12 +72,20 @@ export default async function ExplorePage({ searchParams }: Props) {
               </Link>
             ) : null}
             {profile ? (
-              <Link
-                href="/me"
-                className="text-sm font-medium text-muted hover:text-foreground"
-              >
-                {profile.displayName}
-              </Link>
+              <>
+                <Link
+                  href="/messages"
+                  className="text-sm font-medium text-muted hover:text-foreground"
+                >
+                  Messages
+                </Link>
+                <Link
+                  href="/me"
+                  className="text-sm font-medium text-muted hover:text-foreground"
+                >
+                  {profile.displayName}
+                </Link>
+              </>
             ) : (
               <Link
                 href="/login?next=/explore"

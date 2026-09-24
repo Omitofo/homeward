@@ -8,6 +8,7 @@ import { PostActions } from "@/features/posts/PostActions";
 import { getCurrentProfile, IntentResume } from "@/features/auth";
 import {
   getLikedByMe,
+  getSavedByMe,
   listComments,
   CommentSection,
 } from "@/features/engagement";
@@ -91,8 +92,9 @@ export default async function PostDetailPage({ params }: Props) {
   }
 
   const signedIn = profile !== null;
-  const [initialLiked, initialComments] = await Promise.all([
+  const [initialLiked, initialSaved, initialComments] = await Promise.all([
     signedIn ? getLikedByMe(post.id) : Promise.resolve(false),
+    signedIn ? getSavedByMe(post.id) : Promise.resolve(false),
     listComments(post.id),
   ]);
 
@@ -118,12 +120,20 @@ export default async function PostDetailPage({ params }: Props) {
           </div>
           <div className="flex items-center gap-3">
             {profile ? (
-              <Link
-                href="/me"
-                className="text-sm font-medium text-muted hover:text-foreground"
-              >
-                {profile.displayName}
-              </Link>
+              <>
+                <Link
+                  href="/messages"
+                  className="text-sm font-medium text-muted hover:text-foreground"
+                >
+                  Messages
+                </Link>
+                <Link
+                  href="/me"
+                  className="text-sm font-medium text-muted hover:text-foreground"
+                >
+                  {profile.displayName}
+                </Link>
+              </>
             ) : (
               <Link
                 href={`/login?next=${encodeURIComponent(`/post/${post.id}`)}`}
@@ -216,6 +226,7 @@ export default async function PostDetailPage({ params }: Props) {
               signedIn={signedIn}
               likeCount={post.likeCount}
               initialLiked={initialLiked}
+              initialSaved={initialSaved}
               userId={profile?.id}
               role={profile?.role}
               shelterId={post.shelter.id}

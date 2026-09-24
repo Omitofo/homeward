@@ -6,7 +6,12 @@ import { AccountPrivacy } from "@/features/auth/AccountPrivacy";
 import {
   listSavedSearches,
   SavedSearchesList,
+  listSavedAnimals,
+  listLikedAnimals,
+  SavedAnimalsGrid,
+  LikedAnimalsGrid,
 } from "@/features/engagement";
+import { postsRepository } from "@/features/posts";
 import { siteConfig } from "@/config/site";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -21,23 +26,40 @@ export default async function MePage() {
     redirect("/login?next=/me");
   }
 
-  const saved = await listSavedSearches();
   const isShelter =
     profile.role === "shelter" || profile.role === "admin";
 
+  const [saved, savedAnimals, likedAnimals, mockPage] = await Promise.all([
+    listSavedSearches(),
+    isShelter ? Promise.resolve([]) : listSavedAnimals(),
+    isShelter ? Promise.resolve([]) : listLikedAnimals(),
+    // Mock candidates so client grids can resolve localStorage ids
+    postsRepository.list({ limit: 48 }),
+  ]);
+
+  const mockCandidates = mockPage.items;
+
   return (
     <div className="flex min-h-full flex-col">
-      <main id="main-content" className="mx-auto w-full max-w-lg flex-1 px-4 py-12">
-        <div className="mb-8 flex items-center justify-between">
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             {siteConfig.name}
           </Link>
-          <SignOutButton />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/messages"
+              className="text-sm font-medium text-muted hover:text-foreground"
+            >
+              Messages
+            </Link>
+            <SignOutButton />
+          </div>
         </div>
 
         <h1 className="text-2xl font-semibold tracking-tight">Your account</h1>
         <p className="mt-1 text-sm text-muted">
-          Manage your profile, saved searches, and data.
+          Manage your profile, saved animals, searches, and data.
         </p>
 
         <dl className="mt-8 space-y-4 rounded-lg border border-border bg-card p-5 text-sm">
@@ -66,12 +88,47 @@ export default async function MePage() {
           </p>
         ) : null}
 
-        <section className="mt-10 space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            Saved searches
-          </h2>
-          <SavedSearchesList initial={saved} userId={profile.id} />
-        </section>
+        {!isShelter ? (
+          <>
+            <section className="mt-10 space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+                Saved animals
+              </h2>
+              <SavedAnimalsGrid
+                initial={savedAnimals}
+                userId={profile.id}
+                mockCandidates={mockCandidates}
+              />
+            </section>
+
+            <section className="mt-10 space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+                Liked animals
+              </h2>
+              <LikedAnimalsGrid
+                initial={likedAnimals}
+                userId={profile.id}
+                mockCandidates={mockCandidates}
+              />
+            </section>
+
+            <section className="mt-10 space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+                Saved searches
+              </h2>
+              <SavedSearchesList initial={saved} userId={profile.id} />
+            </section>
+          </>
+        ) : (
+          <section className="mt-10 space-y-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+              Saved searches
+            </h2>
+            <p className="text-sm text-muted">
+              Saved searches and animal favorites are for adopter accounts.
+            </p>
+          </section>
+        )}
 
         <AccountPrivacy />
 
