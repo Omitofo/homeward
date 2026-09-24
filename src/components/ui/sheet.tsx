@@ -24,6 +24,9 @@ export type SheetProps = {
  * Bottom sheet (mobile-first). On tablet/desktop the panel is centered with a
  * max content width so filters don’t stretch edge-to-edge.
  * Escape closes; focus is trapped while open and restored on close.
+ *
+ * Header/footer stay fixed; only the body scrolls so the native scrollbar
+ * sits against the content area and can be themed via `.sheet-scroll`.
  */
 export function Sheet({
   open,
@@ -119,14 +122,15 @@ export function Sheet({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={cn(
-          "absolute inset-x-0 bottom-0 max-h-[85vh] overflow-auto rounded-t-xl bg-card shadow-lg",
+          // Flex column so header/footer stay put and only the body scrolls
+          "absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col overflow-hidden rounded-t-xl bg-card shadow-lg",
           // Tablet/desktop: keep bottom-sheet feel but cap width so content isn’t stretched
           "sm:left-1/2 sm:right-auto sm:w-full sm:max-w-[600px] sm:-translate-x-1/2",
           "focus:outline-none",
           className,
         )}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-card px-4 py-3">
           <h2 id={titleId} className="text-base font-semibold text-foreground">
             {title}
           </h2>
@@ -142,10 +146,12 @@ export function Sheet({
           </Button>
         </div>
 
-        <div className="px-4 py-4">{children}</div>
+        <div className="sheet-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+          {children}
+        </div>
 
         {footer && (
-          <div className="sticky bottom-0 border-t border-border bg-card px-4 py-3">
+          <div className="shrink-0 border-t border-border bg-card px-4 py-3">
             {footer}
           </div>
         )}
