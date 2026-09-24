@@ -245,6 +245,8 @@ export async function startConversation(
     return { ok: false, error: "Cannot message yourself" };
   }
 
+  // Always one thread per adopter + shelter. Animal context is carried in
+  // intro messages, not as a single sticky post_id on the conversation.
   if (useMock) {
     const existing = findMockConversation(profile.id, shelterProfileId);
     if (existing) {
@@ -310,6 +312,7 @@ export async function startConversation(
       .insert({
         adopter_id: profile.id,
         shelter_profile_id: shelterProfileId,
+        // Optional first post for analytics; UI no longer pins it as the only context
         post_id: postId ?? null,
       })
       .select("id")
@@ -322,6 +325,8 @@ export async function startConversation(
     conversationId = created.id;
   }
 
+  // Always post the intro when provided (including reopening an existing thread
+  // from a different animal or from the shelter page).
   if (initialMessage) {
     await supabase.from("messages").insert({
       conversation_id: conversationId,

@@ -11,15 +11,26 @@ type Props = {
   /** public.shelters.id */
   shelterId: string;
   postId?: string;
+  /** Optional animal display name for a clearer intro message */
+  animalName?: string;
   signedIn: boolean;
   disabled?: boolean;
   label?: string;
   size?: "sm" | "md" | "lg";
 };
 
+function buildInitialMessage(postId?: string, animalName?: string): string {
+  if (postId) {
+    const label = animalName?.trim() || "this animal";
+    return `Hi! I'm interested in ${label} (/post/${postId}) and would love to learn more.`;
+  }
+  return "Hi! I'd like to learn more about adopting through your rescue.";
+}
+
 export function StartChatButton({
   shelterId,
   postId,
+  animalName,
   signedIn,
   disabled,
   label = "Contact shelter",
@@ -49,9 +60,7 @@ export function StartChatButton({
       const result = await startConversation({
         shelterId,
         postId,
-        initialMessage: postId
-          ? "Hi! I'm interested in this animal and would love to learn more."
-          : "Hi! I'd like to learn more about adopting through your rescue.",
+        initialMessage: buildInitialMessage(postId, animalName),
       });
       if (!result.ok) {
         setError(result.error);

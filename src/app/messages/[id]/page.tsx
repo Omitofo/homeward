@@ -35,7 +35,7 @@ export default async function ConversationPage({ params }: Props) {
     );
   }
 
-  const { messages, peerName, postId } = result.data;
+  const { messages, peerName } = result.data;
 
   return (
     <main
@@ -50,17 +50,10 @@ export default async function ConversationPage({ params }: Props) {
             </Link>
           </p>
           <h1 className="text-xl font-semibold tracking-tight">{peerName}</h1>
-          {postId ? (
-            <p className="text-xs text-muted">
-              About{" "}
-              <Link
-                href={`/post/${postId}`}
-                className="font-medium text-primary hover:underline"
-              >
-                this animal
-              </Link>
-            </p>
-          ) : null}
+          <p className="text-xs text-muted">
+            One thread with this rescue. Animal context appears in the messages
+            when you contact from a post.
+          </p>
         </div>
       </div>
 

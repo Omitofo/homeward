@@ -230,6 +230,7 @@ export default async function PostDetailPage({ params }: Props) {
               userId={profile?.id}
               role={profile?.role}
               shelterId={post.shelter.id}
+              animalName={post.name}
               shareTitle={shareTitle}
               shareUrl={shareUrl}
               shareText={shareText}
