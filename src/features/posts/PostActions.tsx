@@ -21,6 +21,8 @@ type Props = {
   role?: Role | null;
   /** public.shelters.id */
   shelterId?: string | null;
+  /** Animal display name for chat intro context */
+  animalName?: string;
   shareTitle: string;
   shareUrl: string;
   shareText?: string;
@@ -36,6 +38,7 @@ export function PostActions({
   userId,
   role,
   shelterId,
+  animalName,
   shareTitle,
   shareUrl,
   shareText,
@@ -56,6 +59,7 @@ export function PostActions({
             <StartChatButton
               shelterId={shelterId}
               postId={postId}
+              animalName={animalName}
               signedIn={signedIn}
               disabled={status !== "available"}
               label={
