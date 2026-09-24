@@ -46,6 +46,10 @@ export function StudioPostRow({ post }: { post: AnimalPost }) {
         <p className="mt-0.5 truncate text-sm text-muted">
           {post.species} · {post.breed || "mixed"} · {post.city}
         </p>
+        <p className="mt-1 flex flex-wrap gap-3 text-xs text-muted" aria-label="Engagement">
+          <span title="Likes">♥ {post.likeCount}</span>
+          <span title="Comments">{post.commentCount} comments</span>
+        </p>
       </div>
       <Link
         href={href}

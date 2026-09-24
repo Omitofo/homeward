@@ -16,3 +16,11 @@ export {
   deleteSavedSearch,
 } from "./saved-searches/actions";
 export type { SavedSearch } from "./saved-searches/types";
+export { SaveButton } from "./saved-animals/SaveButton";
+export { SavedAnimalsGrid } from "./saved-animals/SavedAnimalsGrid";
+export {
+  toggleSave,
+  getSavedByMe,
+  listSavedAnimals,
+  type SaveState,
+} from "./saved-animals/actions";

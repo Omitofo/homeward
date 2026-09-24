@@ -6,7 +6,7 @@ import { Button } from "@/components/ui";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
 import { StartChatButton } from "@/features/chat";
-import { LikeButton, ShareButton } from "@/features/engagement";
+import { LikeButton, SaveButton, ShareButton } from "@/features/engagement";
 import { ReportButton } from "@/features/moderation";
 import type { PostStatus, Role } from "@/types/domain";
 
@@ -16,6 +16,7 @@ type Props = {
   signedIn: boolean;
   likeCount: number;
   initialLiked?: boolean;
+  initialSaved?: boolean;
   userId?: string | null;
   role?: Role | null;
   /** public.shelters.id */
@@ -31,6 +32,7 @@ export function PostActions({
   signedIn,
   likeCount,
   initialLiked = false,
+  initialSaved = false,
   userId,
   role,
   shelterId,
@@ -41,23 +43,10 @@ export function PostActions({
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [intent, setIntent] = useState<AuthIntent | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
   const canLike = role !== "shelter";
+  const canSave = role !== "shelter";
   const canStartChat = role !== "shelter";
-
-  function gateOrRun(type: AuthIntent["type"], whenSignedIn: () => void) {
-    if (signedIn) {
-      whenSignedIn();
-      return;
-    }
-    setIntent({
-      type,
-      returnTo: pathname || `/post/${postId}`,
-      postId,
-    });
-    setSheetOpen(true);
-  }
 
   return (
     <>
@@ -99,24 +88,21 @@ export function PostActions({
             size="lg"
           />
 
+          <SaveButton
+            postId={postId}
+            initialSaved={initialSaved}
+            signedIn={signedIn}
+            userId={userId}
+            canSave={canSave}
+            size="lg"
+          />
+
           <ShareButton
             url={shareUrl}
             title={shareTitle}
             text={shareText}
             size="lg"
           />
-
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() =>
-              gateOrRun("save", () =>
-                setNotice("Saved animals arrive with the adopter area."),
-              )
-            }
-          >
-            Save
-          </Button>
         </div>
 
         <ReportButton
@@ -125,12 +111,6 @@ export function PostActions({
           signedIn={signedIn}
           returnTo={pathname || `/post/${postId}`}
         />
-
-        {notice && (
-          <p className="text-sm text-muted" role="status">
-            {notice}
-          </p>
-        )}
       </div>
 
       <AuthSheet
