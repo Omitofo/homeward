@@ -42,7 +42,7 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
       const newCards = cards.slice(prev.length);
       if (newCards.length === 0) {
         prevIdsRef.current = ids;
-        return;
+      return;
       }
 
       if (level === "reduced") {
@@ -138,6 +138,7 @@ export function FeedGrid({ posts }: { posts: AnimalPost[] }) {
           key={post.id}
           data-feed-card
           data-flip-id={post.id}
+          className="h-full"
           // Hidden until GSAP sets autoAlpha (avoids FOUC when motion is on).
           style={level === "off" ? undefined : { opacity: 0 }}
         >

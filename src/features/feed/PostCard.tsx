@@ -18,11 +18,11 @@ function ageLabel(months: number, group: string) {
 
 export function PostCard({ post }: { post: AnimalPost }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
-      {/* Media — carousel when multiple photos */}
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+      {/* Media — fixed square ratio so all cards share the same top block */}
       <Link
         href={`/post/${post.id}`}
-        className="relative block aspect-square overflow-hidden bg-secondary"
+        className="relative block aspect-square shrink-0 overflow-hidden bg-secondary"
       >
         <CardCarousel media={post.media} name={post.name} />
         <div className="absolute left-2 top-2 z-10">
@@ -32,28 +32,36 @@ export function PostCard({ post }: { post: AnimalPost }) {
         </div>
       </Link>
 
-      {/* Body */}
-      <div className="flex flex-1 flex-col gap-2 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <Link href={`/post/${post.id}`} className="font-semibold text-foreground hover:underline">
-              {post.name}
-            </Link>
-            <p className="text-sm text-muted">
-              {post.breed} · {ageLabel(post.ageMonths, post.ageGroup)}
-            </p>
-          </div>
+      {/* Body — fixed text clamps so content height does not vary by post */}
+      <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+        <div className="min-w-0">
+          <Link
+            href={`/post/${post.id}`}
+            className="block truncate font-semibold text-foreground hover:underline"
+          >
+            {post.name}
+          </Link>
+          <p className="truncate text-sm text-muted">
+            {post.breed} · {ageLabel(post.ageMonths, post.ageGroup)}
+          </p>
         </div>
 
-        <p className="line-clamp-2 text-sm text-muted">{post.description}</p>
+        {/* Always reserve 2 lines so short descriptions do not shrink the card */}
+        <p className="line-clamp-2 min-h-[2.5rem] text-sm text-muted">
+          {post.description}
+        </p>
 
-        {/* Shelter row */}
+        {/* Shelter + meta pinned to bottom of the equal-height card */}
         <div className="mt-auto flex items-center gap-2 border-t border-border pt-2">
-          <Avatar name={post.shelter.orgName} size="sm" src={post.shelter.avatarUrl} />
+          <Avatar
+            name={post.shelter.orgName}
+            size="sm"
+            src={post.shelter.avatarUrl}
+          />
           <div className="min-w-0 flex-1">
             <Link
               href={`/shelter/${post.shelter.handle}`}
-              className="truncate text-sm font-medium text-foreground hover:underline"
+              className="block truncate text-sm font-medium text-foreground hover:underline"
             >
               {post.shelter.orgName}
             </Link>
@@ -64,7 +72,6 @@ export function PostCard({ post }: { post: AnimalPost }) {
           {post.shelter.verificationStatus === "verified" && <VerifiedBadge />}
         </div>
 
-        {/* Meta */}
         <div className="flex items-center gap-3 text-xs text-muted">
           <span>{post.likeCount} likes</span>
           <span>{post.commentCount} comments</span>
