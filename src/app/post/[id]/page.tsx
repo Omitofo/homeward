@@ -40,6 +40,20 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** Fixed locale so SSR matches (Listed line is server-rendered). */
+function formatListedDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+  } catch {
+    return "";
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const post = await postsRepository.getById(id);
@@ -93,6 +107,8 @@ export default async function PostDetailPage({ params }: Props) {
   }
 
   const signedIn = profile !== null;
+  const isAdmin = profile?.role === "admin";
+  const isShelter = profile?.role === "shelter";
   const [initialLiked, initialSaved, initialComments] = await Promise.all([
     signedIn ? getLikedByMe(post.id) : Promise.resolve(false),
     signedIn ? getSavedByMe(post.id) : Promise.resolve(false),
@@ -120,6 +136,22 @@ export default async function PostDetailPage({ params }: Props) {
             </Link>
           </div>
           <div className="flex items-center gap-3">
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Admin
+              </Link>
+            ) : null}
+            {isShelter ? (
+              <Link
+                href="/studio"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Studio
+              </Link>
+            ) : null}
             {profile ? (
               <>
                 <MessagesNavLink />
@@ -206,14 +238,7 @@ export default async function PostDetailPage({ params }: Props) {
             <div className="flex gap-6 text-sm text-muted">
               <span>{post.likeCount} likes</span>
               <span>{post.commentCount} comments</span>
-              <span>
-                Listed{" "}
-                {new Date(post.createdAt).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
+              <span>Listed {formatListedDate(post.createdAt)}</span>
             </div>
 
             <PostActions

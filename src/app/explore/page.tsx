@@ -50,8 +50,8 @@ export default async function ExplorePage({ searchParams }: Props) {
     Boolean(parsed.q) ||
     Boolean(parsed.country);
 
-  const isShelter =
-    profile?.role === "shelter" || profile?.role === "admin";
+  const isAdmin = profile?.role === "admin";
+  const isShelter = profile?.role === "shelter";
 
   return (
     <div className="min-h-full">
@@ -64,6 +64,14 @@ export default async function ExplorePage({ searchParams }: Props) {
             <span className="hidden text-sm text-muted sm:inline">Explore</span>
           </div>
           <div className="flex items-center gap-3">
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Admin
+              </Link>
+            ) : null}
             {isShelter ? (
               <Link
                 href="/studio"
@@ -112,7 +120,7 @@ export default async function ExplorePage({ searchParams }: Props) {
             filters={parsed}
             signedIn={profile !== null}
             userId={profile?.id}
-            canSaveSearch={profile?.role !== "shelter"}
+            canSaveSearch={profile?.role !== "shelter" && profile?.role !== "admin"}
           />
         </div>
 
