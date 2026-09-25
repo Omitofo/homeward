@@ -5,22 +5,60 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
+import type { AdminQueueCounts } from "./queue-counts";
 
 type AdminLink = {
   href: string;
   label: string;
   exact?: boolean;
+  countKey?: keyof Pick<
+    AdminQueueCounts,
+    "applications" | "verification" | "reports"
+  >;
 };
 
 const links: AdminLink[] = [
   { href: "/admin", label: "Overview", exact: true },
-  { href: "/admin/shelter-applications", label: "Applications" },
-  { href: "/admin/verification", label: "Verification" },
-  { href: "/admin/reports", label: "Reports" },
+  {
+    href: "/admin/shelter-applications",
+    label: "Applications",
+    countKey: "applications",
+  },
+  {
+    href: "/admin/verification",
+    label: "Verification",
+    countKey: "verification",
+  },
+  { href: "/admin/reports", label: "Reports", countKey: "reports" },
 ];
 
-export function AdminNav({ displayName }: { displayName?: string }) {
+function CountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  const label = count > 99 ? "99+" : String(count);
+  return (
+    <span
+      className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
+      aria-hidden
+    >
+      {label}
+    </span>
+  );
+}
+
+export function AdminNav({
+  displayName,
+  counts,
+}: {
+  displayName?: string;
+  counts?: AdminQueueCounts;
+}) {
   const pathname = usePathname() ?? "/admin";
+  const c = counts ?? {
+    applications: 0,
+    verification: 0,
+    reports: 0,
+    total: 0,
+  };
 
   return (
     <header className="border-b border-border bg-card">
@@ -35,8 +73,17 @@ export function AdminNav({ displayName }: { displayName?: string }) {
           <span className="text-muted" aria-hidden>
             /
           </span>
-          <Link href="/admin" className="text-sm font-medium hover:underline">
+          <Link
+            href="/admin"
+            className="relative inline-flex items-center text-sm font-medium hover:underline"
+            aria-label={
+              c.total > 0
+                ? `Admin, ${c.total} pending`
+                : "Admin"
+            }
+          >
             Admin
+            <CountBadge count={c.total} />
           </Link>
           {displayName ? (
             <span className="hidden truncate text-sm text-muted sm:inline">
@@ -59,6 +106,7 @@ export function AdminNav({ displayName }: { displayName?: string }) {
           const active = link.exact
             ? pathname === link.href
             : pathname.startsWith(link.href);
+          const count = link.countKey ? c[link.countKey] : 0;
           return (
             <Link
               key={link.href}
@@ -70,8 +118,14 @@ export function AdminNav({ displayName }: { displayName?: string }) {
                   : "text-muted hover:bg-secondary/60 hover:text-foreground",
               )}
               aria-current={active ? "page" : undefined}
+              aria-label={
+                count > 0
+                  ? `${link.label}, ${count} pending`
+                  : link.label
+              }
             >
               {link.label}
+              <CountBadge count={count} />
             </Link>
           );
         })}

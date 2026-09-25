@@ -7,6 +7,7 @@ import { FeedInfinite } from "@/features/feed/FeedInfinite";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { getCurrentProfile } from "@/features/auth";
 import { MessagesNavLink } from "@/features/chat";
+import { AdminNavLink } from "@/features/admin";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -64,14 +65,7 @@ export default async function ExplorePage({ searchParams }: Props) {
             <span className="hidden text-sm text-muted sm:inline">Explore</span>
           </div>
           <div className="flex items-center gap-3">
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Admin
-              </Link>
-            ) : null}
+            {isAdmin ? <AdminNavLink /> : null}
             {isShelter ? (
               <Link
                 href="/studio"
