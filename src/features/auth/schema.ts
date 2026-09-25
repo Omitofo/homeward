@@ -36,6 +36,28 @@ export const passwordSchema = z
   .min(8, "Password must be at least 8 characters")
   .max(72, "Password must be 72 characters or fewer");
 
+const websiteSchema = z
+  .string()
+  .trim()
+  .max(300, "Website must be 300 characters or fewer")
+  .optional()
+  .or(z.literal(""));
+
+const countryCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .max(2)
+  .optional()
+  .or(z.literal(""));
+
+const messageSchema = z
+  .string()
+  .trim()
+  .max(2000, "Message must be 2000 characters or fewer")
+  .optional()
+  .or(z.literal(""));
+
 export const magicLinkAdopterSchema = z.object({
   email: emailSchema,
   displayName: displayNameSchema,
@@ -47,6 +69,9 @@ export const magicLinkShelterSchema = z.object({
   displayName: displayNameSchema,
   orgName: orgNameSchema,
   handle: handleSchema,
+  website: websiteSchema,
+  countryCode: countryCodeSchema,
+  message: messageSchema,
   next: z.string().optional(),
 });
 
@@ -74,6 +99,9 @@ export const passwordShelterSchema = z.object({
   displayName: displayNameSchema,
   orgName: orgNameSchema,
   handle: handleSchema,
+  website: websiteSchema,
+  countryCode: countryCodeSchema,
+  message: messageSchema,
   next: z.string().optional(),
 });
 
