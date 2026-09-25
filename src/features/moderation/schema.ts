@@ -28,6 +28,27 @@ export type ResolveReportInput = z.infer<typeof resolveReportSchema>;
 
 export type ReportStatus = "open" | "dismissed" | "actioned";
 
+/** Snapshot of the reported content for the admin queue UI. */
+export type ReportTargetPreview =
+  | {
+      kind: "post";
+      name: string;
+      species: string;
+      status: string;
+      href: string;
+      available: boolean;
+    }
+  | {
+      kind: "comment";
+      body: string | null;
+      authorName: string | null;
+      postId: string | null;
+      postName: string | null;
+      hidden: boolean;
+      href: string | null;
+      available: boolean;
+    };
+
 export type ReportRow = {
   id: string;
   reporterId: string;
@@ -38,4 +59,6 @@ export type ReportRow = {
   resolutionNote: string;
   createdAt: string;
   resolvedAt: string | null;
+  /** Enriched at list time; may be unavailable if content was deleted. */
+  target?: ReportTargetPreview;
 };

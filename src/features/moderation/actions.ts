@@ -11,6 +11,7 @@ import {
   resolveReportSchema,
   submitReportSchema,
   type ReportRow,
+  type ReportTargetPreview,
 } from "./schema";
 import {
   addMockReport,
@@ -66,6 +67,7 @@ export async function submitReport(
       resolutionNote: "",
       createdAt: new Date().toISOString(),
       resolvedAt: null,
+      target: mockTargetPreview(targetType, targetId),
     };
     addMockReport(row);
     return { ok: true, data: { id } };
@@ -99,13 +101,191 @@ export async function submitReport(
   return { ok: true, data: { id: data.id } };
 }
 
+function mockTargetPreview(
+  targetType: "post" | "comment",
+  targetId: string,
+): ReportTargetPreview {
+  if (targetType === "post") {
+    return {
+      kind: "post",
+      name: "Sample animal",
+      species: "dog",
+      status: "available",
+      href: `/post/${targetId}`,
+      available: true,
+    };
+  }
+  return {
+    kind: "comment",
+    body: "This is a sample reported comment for local mock review.",
+    authorName: "Member",
+    postId: "mock-post",
+    postName: "Sample animal",
+    hidden: false,
+    href: "/explore",
+    available: true,
+  };
+}
+
+function unavailableTarget(
+  targetType: "post" | "comment",
+): ReportTargetPreview {
+  if (targetType === "post") {
+    return {
+      kind: "post",
+      name: "Post unavailable",
+      species: "",
+      status: "",
+      href: "#",
+      available: false,
+    };
+  }
+  return {
+    kind: "comment",
+    body: null,
+    authorName: null,
+    postId: null,
+    postName: null,
+    hidden: false,
+    href: null,
+    available: false,
+  };
+}
+
+async function enrichReportTargets(rows: ReportRow[]): Promise<ReportRow[]> {
+  if (rows.length === 0) return rows;
+
+  const admin = createAdminClient();
+  const userClient = await createClient();
+  const supabase = admin ?? userClient;
+  if (!supabase) {
+    return rows.map((r) => ({
+      ...r,
+      target: r.target ?? unavailableTarget(r.targetType),
+    }));
+  }
+
+  const postIds = [
+    ...new Set(
+      rows.filter((r) => r.targetType === "post").map((r) => r.targetId),
+    ),
+  ];
+  const commentIds = [
+    ...new Set(
+      rows.filter((r) => r.targetType === "comment").map((r) => r.targetId),
+    ),
+  ];
+
+  const postMap = new Map<
+    string,
+    { name: string; species: string; status: string }
+  >();
+  const commentMap = new Map<
+    string,
+    {
+      body: string;
+      postId: string;
+      hidden: boolean;
+      authorName: string | null;
+      postName: string | null;
+    }
+  >();
+
+  if (postIds.length > 0) {
+    const { data, error } = await supabase
+      .from("animal_posts")
+      .select("id, name, species, status")
+      .in("id", postIds);
+    if (error) {
+      console.error("[enrichReportTargets] posts", error.message);
+    } else {
+      for (const p of data ?? []) {
+        postMap.set(p.id, {
+          name: p.name,
+          species: p.species,
+          status: p.status,
+        });
+      }
+    }
+  }
+
+  if (commentIds.length > 0) {
+    // Service role can read hidden comments; user client only sees non-hidden.
+    const { data, error } = await supabase
+      .from("comments")
+      .select(
+        "id, body, post_id, hidden_at, profiles(display_name), animal_posts(name)",
+      )
+      .in("id", commentIds);
+    if (error) {
+      console.error("[enrichReportTargets] comments", error.message);
+    } else {
+      for (const c of data ?? []) {
+        const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles;
+        const post = Array.isArray(c.animal_posts)
+          ? c.animal_posts[0]
+          : c.animal_posts;
+        commentMap.set(c.id, {
+          body: c.body,
+          postId: c.post_id,
+          hidden: c.hidden_at != null,
+          authorName: profile?.display_name ?? null,
+          postName: post?.name ?? null,
+        });
+      }
+    }
+  }
+
+  return rows.map((row) => {
+    if (row.targetType === "post") {
+      const p = postMap.get(row.targetId);
+      if (!p) {
+        return { ...row, target: unavailableTarget("post") };
+      }
+      return {
+        ...row,
+        target: {
+          kind: "post",
+          name: p.name,
+          species: p.species,
+          status: p.status,
+          href: `/post/${row.targetId}`,
+          available: true,
+        } satisfies ReportTargetPreview,
+      };
+    }
+
+    const c = commentMap.get(row.targetId);
+    if (!c) {
+      return { ...row, target: unavailableTarget("comment") };
+    }
+    return {
+      ...row,
+      target: {
+        kind: "comment",
+        body: c.body,
+        authorName: c.authorName,
+        postId: c.postId,
+        postName: c.postName,
+        hidden: c.hidden,
+        href: c.postId ? `/post/${c.postId}` : null,
+        available: true,
+      } satisfies ReportTargetPreview,
+    };
+  });
+}
+
 export async function listOpenReports(): Promise<ActionResult<ReportRow[]>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
   if (profile.role !== "admin") return { ok: false, error: "Admin only" };
 
   if (useMock) {
-    return { ok: true, data: listMockOpenReports() };
+    const items = listMockOpenReports().map((r) => ({
+      ...r,
+      target: r.target ?? mockTargetPreview(r.targetType, r.targetId),
+    }));
+    return { ok: true, data: items };
   }
 
   const supabase = await createClient();
@@ -138,7 +318,8 @@ export async function listOpenReports(): Promise<ActionResult<ReportRow[]>> {
     resolvedAt: r.resolved_at,
   }));
 
-  return { ok: true, data: items };
+  const enriched = await enrichReportTargets(items);
+  return { ok: true, data: enriched };
 }
 
 export async function resolveReport(
@@ -184,6 +365,7 @@ export async function resolveReport(
     });
 
     revalidatePath("/admin/reports");
+    revalidatePath("/admin");
     if (existing.targetType === "post") {
       revalidatePath(`/post/${existing.targetId}`);
       revalidatePath("/explore");
