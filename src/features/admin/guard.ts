@@ -12,7 +12,7 @@ export async function requireAdminContext(): Promise<
 > {
   const profile = await getCurrentProfile();
   if (!profile) {
-    redirect("/login?next=/admin/verification");
+    redirect("/login?next=/admin");
   }
 
   if (profile.role !== "admin") {
