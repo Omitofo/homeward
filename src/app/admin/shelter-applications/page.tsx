@@ -35,23 +35,17 @@ export default async function AdminShelterApplicationsPage() {
 
   return (
     <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Shelter applications
-        </h1>
-        <p className="text-xs text-muted">Signed in as {ctx.profile.displayName}</p>
-      </div>
-      <p className="text-sm text-muted">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Shelter applications
+      </h1>
+      <p className="mt-1 text-sm text-muted">
         Review request-to-join applications. Approving creates the shelter
         account (Studio access). The Verified badge is a separate step after
         they join.
       </p>
       <p className="mt-2 text-xs text-muted">
         Tip: call or email the rescue off-platform before approving if you need
-        extra confidence.{" "}
-        <Link href="/admin/verification" className="text-primary hover:underline">
-          Verification queue →
-        </Link>
+        extra confidence.
       </p>
 
       {!result.ok ? (
@@ -80,8 +74,8 @@ export default async function AdminShelterApplicationsPage() {
       ) : null}
 
       <p className="mt-10 text-sm">
-        <Link href="/" className="font-medium text-primary hover:underline">
-          ← Home
+        <Link href="/admin" className="font-medium text-primary hover:underline">
+          ← Command center
         </Link>
       </p>
     </main>

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/features/auth";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
@@ -16,13 +19,9 @@ const links: AdminLink[] = [
   { href: "/admin/reports", label: "Reports" },
 ];
 
-export function AdminNav({
-  pathname,
-  displayName,
-}: {
-  pathname: string;
-  displayName?: string;
-}) {
+export function AdminNav({ displayName }: { displayName?: string }) {
+  const pathname = usePathname() ?? "/admin";
+
   return (
     <header className="border-b border-border bg-card">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -46,10 +45,7 @@ export function AdminNav({
           ) : null}
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/me"
-            className="text-sm text-muted hover:text-foreground"
-          >
+          <Link href="/me" className="text-sm text-muted hover:text-foreground">
             Account
           </Link>
           <SignOutButton />

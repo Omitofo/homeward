@@ -25,8 +25,8 @@ export default async function MePage() {
     redirect("/login?next=/me");
   }
 
-  const isShelter =
-    profile.role === "shelter" || profile.role === "admin";
+  const isAdmin = profile.role === "admin";
+  const isShelter = profile.role === "shelter" || isAdmin;
 
   const [saved, savedAnimals, mockPage] = await Promise.all([
     listSavedSearches(),
@@ -69,7 +69,18 @@ export default async function MePage() {
           </div>
         </dl>
 
-        {isShelter ? (
+        {isAdmin ? (
+          <p className="mt-6">
+            <Link
+              href="/admin"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Open admin command center
+            </Link>
+          </p>
+        ) : null}
+
+        {isShelter && !isAdmin ? (
           <p className="mt-6">
             <Link
               href="/studio"
@@ -106,12 +117,22 @@ export default async function MePage() {
               Adopter tools
             </h2>
             <p className="text-sm text-muted">
-              Saved animals and searches are for adopter accounts. See like and
-              comment counts on each post in{" "}
-              <Link href="/studio" className="font-medium text-primary hover:underline">
-                Studio
-              </Link>
-              .
+              Saved animals and searches are for adopter accounts.
+              {isAdmin
+                ? " Use the command center for moderation queues."
+                : (
+                    <>
+                      {" "}
+                      See like and comment counts on each post in{" "}
+                      <Link
+                        href="/studio"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        Studio
+                      </Link>
+                      .
+                    </>
+                  )}
             </p>
           </section>
         )}

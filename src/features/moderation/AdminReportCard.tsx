@@ -9,6 +9,23 @@ import type { ReportRow } from "./schema";
 
 type Props = { row: ReportRow };
 
+/** Fixed locale so SSR and client match (avoids hydration mismatch). */
+function formatReportTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "UTC",
+    }) + " UTC";
+  } catch {
+    return iso;
+  }
+}
+
 export function AdminReportCard({ row }: Props) {
   const router = useRouter();
   const [note, setNote] = useState("");
@@ -42,12 +59,14 @@ export function AdminReportCard({ row }: Props) {
     <article className="rounded-lg border border-border bg-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-medium">
+          <p className="text-sm font-medium capitalize">
             {row.targetType}{" "}
-            <span className="font-mono text-xs text-muted">{row.targetId}</span>
+            <span className="font-mono text-xs font-normal text-muted">
+              {row.targetId}
+            </span>
           </p>
-          <p className="mt-0.5 text-xs text-muted">
-            {new Date(row.createdAt).toLocaleString()}
+          <p className="mt-0.5 text-xs text-muted" suppressHydrationWarning>
+            {formatReportTime(row.createdAt)}
           </p>
         </div>
         <Badge variant="neutral">{row.status}</Badge>
