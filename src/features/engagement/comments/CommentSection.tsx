@@ -23,7 +23,26 @@ type Props = {
   displayName?: string | null;
 };
 
-function formatWhen(iso: string) {
+/** Stable UTC label for SSR + first paint (avoids locale/TZ hydration mismatch). */
+function formatUtc(iso: string): string {
+  try {
+    return (
+      new Date(iso).toLocaleString("en-GB", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "UTC",
+      }) + " UTC"
+    );
+  } catch {
+    return "";
+  }
+}
+
+/** Browser locale + local timezone after mount. */
+function formatLocal(iso: string): string {
   try {
     return new Date(iso).toLocaleString(undefined, {
       month: "short",
@@ -32,8 +51,22 @@ function formatWhen(iso: string) {
       minute: "2-digit",
     });
   } catch {
-    return "";
+    return formatUtc(iso);
   }
+}
+
+function CommentTime({ iso }: { iso: string }) {
+  const [label, setLabel] = useState(() => formatUtc(iso));
+
+  useEffect(() => {
+    setLabel(formatLocal(iso));
+  }, [iso]);
+
+  return (
+    <time className="text-xs text-muted" dateTime={iso}>
+      {label}
+    </time>
+  );
 }
 
 export function CommentSection({
@@ -145,9 +178,7 @@ export function CommentSection({
                 <span className="text-sm font-medium text-foreground">
                   {c.displayName}
                 </span>
-                <time className="text-xs text-muted" dateTime={c.createdAt}>
-                  {formatWhen(c.createdAt)}
-                </time>
+                <CommentTime iso={c.createdAt} />
               </div>
               <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
                 {c.body}
