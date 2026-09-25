@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sheltersRepository } from "@/features/shelters";
 import { postsRepository } from "@/features/posts";
 import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { FeedGrid } from "@/features/feed/FeedGrid";
-import { MotionToggle } from "@/motion/components/MotionToggle";
 import { getCurrentProfile } from "@/features/auth";
 import { StartChatButton } from "@/features/chat";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { siteConfig } from "@/config/site";
 import type { VerificationStatus } from "@/types/domain";
 
@@ -73,23 +72,11 @@ export default async function ShelterProfilePage({ params }: Props) {
 
   return (
     <div className="min-h-full">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/explore"
-              className="text-sm font-medium text-muted hover:text-foreground"
-            >
-              ← Explore
-            </Link>
-            <span className="hidden text-border sm:inline">|</span>
-            <Link href="/" className="hidden text-lg font-semibold tracking-tight sm:inline">
-              Homeward
-            </Link>
-          </div>
-          <MotionToggle />
-        </div>
-      </header>
+      <AppHeader
+        profile={profile}
+        maxWidthClassName="max-w-5xl"
+        loginNext={`/shelter/${shelter.handle}`}
+      />
 
       <main id="main-content" className="mx-auto max-w-5xl px-4 py-8">
         <section className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start">

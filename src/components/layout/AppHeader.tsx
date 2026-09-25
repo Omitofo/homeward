@@ -50,11 +50,11 @@ export function AppHeader({
     >
       <div
         className={cn(
-          "mx-auto flex items-center justify-between gap-4 px-4 py-3",
+          "mx-auto flex items-center justify-between gap-3 px-4 py-3 sm:gap-4",
           maxWidthClassName,
         )}
       >
-        <div className="flex min-w-0 items-center gap-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Link
             href="/"
             className="truncate text-lg font-semibold tracking-tight text-foreground"
@@ -63,32 +63,20 @@ export function AppHeader({
           </Link>
           <Link
             href="/explore"
-            className={cn(
-              active === "explore" ? linkActive : linkBase,
-              "hidden sm:inline",
-            )}
+            className={active === "explore" ? linkActive : linkBase}
             aria-current={active === "explore" ? "page" : undefined}
           >
             Explore
           </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
-          {/* Mobile Explore when left label is hidden */}
-          <Link
-            href="/explore"
-            className={cn(
-              active === "explore" ? linkActive : linkBase,
-              "sm:hidden",
-            )}
-            aria-current={active === "explore" ? "page" : undefined}
-          >
-            Explore
-          </Link>
-
+        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
           {isAdmin ? <AdminNavLink /> : null}
           {isShelter ? (
-            <Link href="/studio" className="text-sm font-medium text-primary hover:underline">
+            <Link
+              href="/studio"
+              className="text-sm font-medium text-primary hover:underline"
+            >
               Studio
             </Link>
           ) : null}
@@ -104,7 +92,10 @@ export function AppHeader({
               />
               <Link
                 href="/me"
-                className={active === "me" ? linkActive : linkBase}
+                className={cn(
+                  active === "me" ? linkActive : linkBase,
+                  "max-w-[8rem] truncate sm:max-w-none",
+                )}
                 aria-current={active === "me" ? "page" : undefined}
               >
                 {profile.displayName}

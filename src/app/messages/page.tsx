@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, EmptyStateLink } from "@/components/ui";
 import { getCurrentProfile } from "@/features/auth";
 import { listConversations } from "@/features/chat";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -49,12 +49,7 @@ export default async function MessagesPage() {
               title="No conversations yet"
               description="Open a post and tap Contact shelter to start a chat."
               action={
-                <Link
-                  href="/explore"
-                  className="font-medium text-primary hover:underline"
-                >
-                  Browse animals
-                </Link>
+                <EmptyStateLink href="/explore">Browse animals</EmptyStateLink>
               }
             />
           </div>

@@ -90,6 +90,12 @@ export function AdminNav({
           ) : null}
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/explore"
+            className="text-sm font-medium text-muted hover:text-foreground"
+          >
+            Explore
+          </Link>
           <Link href="/me" className="text-sm text-muted hover:text-foreground">
             Account
           </Link>
