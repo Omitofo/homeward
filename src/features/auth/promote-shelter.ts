@@ -5,12 +5,18 @@ export type ShelterMeta = {
   handle?: unknown;
   org_name?: unknown;
   display_name?: unknown;
+  website?: unknown;
+  country_code?: unknown;
+  message?: unknown;
 };
 
 export type ShelterIntentPayload = {
   handle: string;
   orgName: string;
   displayName?: string;
+  website?: string;
+  countryCode?: string;
+  message?: string;
 };
 
 function asNonEmptyString(value: unknown): string | null {
@@ -20,12 +26,10 @@ function asNonEmptyString(value: unknown): string | null {
 }
 
 /**
- * Promote (or complete) a shelter account after sign-up confirmation.
- * Uses the service-role client + admin_promote_shelter RPC (SECURITY DEFINER)
- * so profiles.role can change even when the lock trigger does not see a
- * service_role JWT claim correctly.
+ * After shelter-intent sign-up, create a pending application instead of
+ * promoting the user to role=shelter. Admin must approve before Studio access.
  */
-export async function ensureShelterProfile(
+export async function submitShelterApplication(
   userId: string,
   meta: ShelterMeta,
   cookieIntent?: ShelterIntentPayload | null,
@@ -44,106 +48,114 @@ export async function ensureShelterProfile(
     asNonEmptyString(meta.org_name) ?? cookieIntent?.orgName ?? null;
   const displayName =
     asNonEmptyString(meta.display_name) ?? cookieIntent?.displayName ?? null;
+  const website =
+    asNonEmptyString(meta.website) ?? cookieIntent?.website ?? "";
+  const countryCode = (
+    asNonEmptyString(meta.country_code) ??
+    cookieIntent?.countryCode ??
+    "XX"
+  )
+    .slice(0, 2)
+    .toUpperCase();
+  const message =
+    asNonEmptyString(meta.message) ?? cookieIntent?.message ?? "";
 
   if (!handle || !orgName) {
     console.error(
-      "[auth] shelter promote skipped: missing handle/org_name",
+      "[auth] shelter application skipped: missing handle/org_name",
       { userId, meta, cookieIntent },
     );
     return {
       ok: false,
-      error: "Shelter sign-up data was incomplete. Try registering again.",
+      error: "Shelter application data was incomplete. Try again.",
     };
   }
 
   const admin = createAdminClient();
   if (!admin) {
     console.error(
-      "[auth] SUPABASE_SERVICE_ROLE_KEY missing; cannot promote shelter",
+      "[auth] SUPABASE_SERVICE_ROLE_KEY missing; cannot submit shelter application",
     );
     return {
       ok: false,
       error:
-        "Server is missing SUPABASE_SERVICE_ROLE_KEY. Shelter accounts cannot be created until it is set in .env.local.",
+        "Server is missing SUPABASE_SERVICE_ROLE_KEY. Applications cannot be stored until it is set.",
     };
   }
 
-  const { error: rpcError } = await admin.rpc("admin_promote_shelter", {
-    p_user_id: userId,
-    p_handle: handle,
-    p_org_name: orgName,
-    p_display_name: displayName,
-  });
-
-  if (!rpcError) {
-    return { ok: true };
-  }
-
-  console.error("[auth] admin_promote_shelter RPC failed", rpcError.message);
-
-  // Fallback for projects that have not applied the RPC migration yet.
-  const { data: existingShelter, error: existingErr } = await admin
+  const { data: existingShelter } = await admin
     .from("shelters")
     .select("id")
     .eq("profile_id", userId)
     .maybeSingle();
-
-  if (existingErr) {
-    console.error("[auth] shelter lookup failed", existingErr.message);
-    return {
-      ok: false,
-      error:
-        "Could not promote shelter. Apply migration 20260923200000_promote_shelter_rpc.sql in Supabase, then try again.",
-    };
-  }
-
-  const profileUpdate: { role: "shelter"; display_name?: string; deleted_at: null } =
-    {
-      role: "shelter",
-      deleted_at: null,
-    };
-  if (displayName) profileUpdate.display_name = displayName;
-
-  const { error: roleError } = await admin
-    .from("profiles")
-    .update(profileUpdate)
-    .eq("id", userId);
-
-  if (roleError) {
-    console.error("[auth] role promote fallback failed", roleError.message);
-    return {
-      ok: false,
-      error:
-        "Could not set shelter role. Run supabase/migrations/20260923200000_promote_shelter_rpc.sql in the SQL editor, then register again.",
-    };
-  }
-
   if (existingShelter) {
     return { ok: true };
   }
 
-  const { error: insertError } = await admin.from("shelters").insert({
-    profile_id: userId,
+  const { data: handleTaken } = await admin
+    .from("shelters")
+    .select("id")
+    .eq("handle", handle)
+    .maybeSingle();
+  if (handleTaken) {
+    return { ok: false, error: "That handle is already taken." };
+  }
+
+  const { data: existingApp } = await admin
+    .from("shelter_applications")
+    .select("id")
+    .eq("applicant_id", userId)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (existingApp) {
+    return { ok: true };
+  }
+
+  const { data: pendingHandle } = await admin
+    .from("shelter_applications")
+    .select("id")
+    .eq("handle", handle)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (pendingHandle) {
+    return {
+      ok: false,
+      error: "That handle is reserved by another pending application.",
+    };
+  }
+
+  const { error: insertError } = await admin.from("shelter_applications").insert({
+    applicant_id: userId,
     handle,
     org_name: orgName,
-    bio: "",
-    country_code: "XX",
-    region: "",
-    city: "",
-    verification_status: "unverified",
+    display_name: displayName ?? "",
+    country_code: countryCode || "XX",
+    website: website ?? "",
+    message: message ?? "",
+    status: "pending",
   });
 
   if (insertError) {
-    console.error("[auth] shelter insert failed", insertError.message);
+    console.error("[auth] shelter application insert failed", insertError.message);
+    if (
+      insertError.message.includes("unique") ||
+      insertError.code === "23505"
+    ) {
+      return {
+        ok: false,
+        error:
+          "You already have a pending application, or that handle is taken.",
+      };
+    }
     return {
       ok: false,
       error:
-        insertError.message.includes("unique") ||
-        insertError.code === "23505"
-          ? "That handle is already taken. Choose another and register again."
-          : "Could not create shelter profile. Try again.",
+        "Could not submit shelter application. Apply migration 20260925140000 in Supabase, then try again.",
     };
   }
 
   return { ok: true };
 }
+
+/** @deprecated Use submitShelterApplication — alias during transition. */
+export const ensureShelterProfile = submitShelterApplication;
