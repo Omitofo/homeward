@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
-import type { AdminQueueCounts } from "./queue-counts";
+import type { AdminQueueCounts } from "./types";
 
 type AdminLink = {
   href: string;
@@ -77,9 +77,7 @@ export function AdminNav({
             href="/admin"
             className="relative inline-flex items-center text-sm font-medium hover:underline"
             aria-label={
-              c.total > 0
-                ? `Admin, ${c.total} pending`
-                : "Admin"
+              c.total > 0 ? `Admin, ${c.total} pending` : "Admin"
             }
           >
             Admin
@@ -119,9 +117,7 @@ export function AdminNav({
               )}
               aria-current={active ? "page" : undefined}
               aria-label={
-                count > 0
-                  ? `${link.label}, ${count} pending`
-                  : link.label
+                count > 0 ? `${link.label}, ${count} pending` : link.label
               }
             >
               {link.label}

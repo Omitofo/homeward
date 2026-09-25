@@ -4,15 +4,9 @@ import { getCurrentProfile } from "@/features/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { listMockOpenReports } from "@/features/moderation/mock-store";
 import { listAllMockVerificationRequests } from "@/features/verification/mock-store";
+import type { AdminQueueCounts } from "./types";
 
 const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA !== "false";
-
-export type AdminQueueCounts = {
-  applications: number;
-  verification: number;
-  reports: number;
-  total: number;
-};
 
 const EMPTY: AdminQueueCounts = {
   applications: 0,
@@ -22,7 +16,6 @@ const EMPTY: AdminQueueCounts = {
 };
 
 async function countRows(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   query: PromiseLike<{ count: number | null; error: { message: string } | null }>,
 ): Promise<number> {
   const { count, error } = await query;
@@ -48,7 +41,6 @@ export async function getAdminQueueCounts(): Promise<AdminQueueCounts> {
       (r) => r.status === "pending" || r.status === "needs_info",
     ).length;
     const reports = listMockOpenReports().length;
-    // Mock applications store is in-memory on the server action module; treat as 0 here.
     const applications = 0;
     return {
       applications,
