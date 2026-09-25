@@ -4,7 +4,7 @@ import { MagicLinkForm } from "@/features/auth";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "Shelter sign-up",
+  title: "Request shelter access",
   robots: { index: false, follow: false },
 };
 
@@ -19,15 +19,17 @@ export default function ShelterRegisterPage() {
           {siteConfig.name}
         </Link>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-          Register your rescue
+          Request to join as a rescue
         </h1>
         <p className="mt-2 text-sm text-muted">
-          Create a shelter account with email and password to post animals.
-          Verification is a separate step after you join.
+          Shelter accounts are reviewed before activation so adopters can trust
+          who they message. After you submit, we may contact you off-platform
+          (email or call). Once approved, you get Studio access. A separate
+          Verified badge is available later with documentation.
         </p>
       </div>
 
-      <MagicLinkForm mode="shelter" next="/studio" />
+      <MagicLinkForm mode="shelter" next="/me?applied=shelter" />
 
       <p className="mt-6 text-center text-sm text-muted">
         Looking to adopt instead?{" "}

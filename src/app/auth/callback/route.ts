@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import {
-  ensureShelterProfile,
+  submitShelterApplication,
   type ShelterIntentPayload,
 } from "@/features/auth/promote-shelter";
 import {
@@ -34,6 +34,10 @@ function parseShelterIntentCookie(
         orgName: p.orgName,
         displayName:
           typeof p.displayName === "string" ? p.displayName : undefined,
+        website: typeof p.website === "string" ? p.website : undefined,
+        countryCode:
+          typeof p.countryCode === "string" ? p.countryCode : undefined,
+        message: typeof p.message === "string" ? p.message : undefined,
       };
     }
   } catch {
@@ -44,8 +48,7 @@ function parseShelterIntentCookie(
 
 /**
  * Supabase email magic-link lands here with ?code=…
- * Return path comes from a short-lived cookie (set when the OTP was requested),
- * with ?next= as a fallback for older links.
+ * Shelter intent creates a pending application (not auto-promote).
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -93,20 +96,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback`);
   }
 
-  const promote = await ensureShelterProfile(
+  const applied = await submitShelterApplication(
     data.user.id,
     data.user.user_metadata ?? {},
     shelterIntent,
   );
 
-  if (!promote.ok) {
-    console.error("[auth/callback] ensureShelterProfile", promote.error);
-    // Still signed in — send them somewhere useful with a visible error flag
+  if (!applied.ok) {
+    console.error("[auth/callback] submitShelterApplication", applied.error);
     response = NextResponse.redirect(
-      `${origin}/login?error=shelter_promote&detail=${encodeURIComponent(promote.error)}`,
+      `${origin}/login?error=shelter_application&detail=${encodeURIComponent(applied.error)}`,
     );
-    // Session cookies were already set on the previous response object via setAll;
-    // copy any supabase cookies that were set on the request.
     const all = request.cookies.getAll();
     for (const c of all) {
       if (c.name.startsWith("sb-")) {

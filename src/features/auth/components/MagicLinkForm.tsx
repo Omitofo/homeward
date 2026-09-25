@@ -17,7 +17,6 @@ type Method = "password" | "magic";
 type Props = {
   mode: Mode;
   next?: string;
-  /** Default auth method. Register defaults to password; sign-in also password. */
   defaultMethod?: Method;
 };
 
@@ -44,12 +43,14 @@ export function MagicLinkForm({
     const displayName = String(form.get("displayName") ?? "");
     const orgName = String(form.get("orgName") ?? "");
     const handle = String(form.get("handle") ?? "");
+    const website = String(form.get("website") ?? "");
+    const countryCode = String(form.get("countryCode") ?? "");
+    const appMessage = String(form.get("message") ?? "");
 
     try {
       if (method === "password") {
         if (mode === "signin") {
           const result = await signInWithPassword({ email, password, next });
-          // redirect() throws; if we get here it failed
           if (result && !result.ok) {
             setError(result.error);
           }
@@ -75,6 +76,9 @@ export function MagicLinkForm({
             displayName,
             orgName,
             handle,
+            website,
+            countryCode,
+            message: appMessage,
             next,
           });
           if (!result.ok) {
@@ -82,7 +86,12 @@ export function MagicLinkForm({
           } else if (result.data?.needsEmailConfirm) {
             setSent(true);
             setMessage(
-              "Check your email to confirm your account, then sign in with your password.",
+              "Check your email to confirm your account. Your shelter application is queued after confirmation — we review every request before Studio access.",
+            );
+          } else if (result.data?.applicationSubmitted) {
+            setSent(true);
+            setMessage(
+              "Application submitted. We review requests before activating shelter accounts. You can sign in as an adopter meanwhile; Studio unlocks after approval.",
             );
           }
         }
@@ -98,6 +107,9 @@ export function MagicLinkForm({
             displayName,
             orgName,
             handle,
+            website,
+            countryCode,
+            message: appMessage,
             next,
           });
         }
@@ -107,12 +119,14 @@ export function MagicLinkForm({
         } else {
           setSent(true);
           setMessage(
-            "Check your email for a magic link. You can close this tab after you click it.",
+            mode === "shelter"
+              ? "Check your email for a magic link. After you confirm, your application is queued for review — not activated automatically."
+              : "Check your email for a magic link. You can close this tab after you click it.",
           );
         }
       }
     } catch {
-      // Next.js redirect() throws a special error; ignore so the navigation proceeds.
+      // Next.js redirect() throws; ignore so navigation proceeds.
     } finally {
       setPending(false);
     }
@@ -125,7 +139,11 @@ export function MagicLinkForm({
         role="status"
       >
         <p className="font-medium">
-          {method === "magic" ? "Magic link sent" : "Confirm your email"}
+          {mode === "shelter"
+            ? "Application received"
+            : method === "magic"
+              ? "Magic link sent"
+              : "Confirm your email"}
         </p>
         <p className="mt-1 text-muted">{message}</p>
       </div>
@@ -193,8 +211,34 @@ export function MagicLinkForm({
             required
             maxLength={32}
             placeholder="berlin-paws"
-            hint="Lowercase letters, numbers, hyphens. Used in your public URL."
+            hint="Lowercase letters, numbers, hyphens. Used in your public URL after approval."
           />
+          <Input
+            name="countryCode"
+            label="Country code"
+            maxLength={2}
+            placeholder="DE"
+            hint="ISO two-letter code (e.g. ES, DE, US)."
+          />
+          <Input
+            name="website"
+            label="Website or social (optional)"
+            maxLength={300}
+            placeholder="https://…"
+          />
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="message" className="text-sm font-medium">
+              Why should we approve you? (optional)
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              rows={3}
+              maxLength={2000}
+              placeholder="Brief context: years active, location, registration number…"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
         </>
       )}
 
@@ -218,7 +262,11 @@ export function MagicLinkForm({
           minLength={8}
           maxLength={72}
           placeholder="At least 8 characters"
-          hint={mode === "signin" ? undefined : "Min 8 characters. You can sign in with this later."}
+          hint={
+            mode === "signin"
+              ? undefined
+              : "Min 8 characters. You can sign in with this later."
+          }
         />
       )}
 
@@ -234,12 +282,16 @@ export function MagicLinkForm({
             ? "Sending…"
             : mode === "signin"
               ? "Signing in…"
-              : "Creating account…"
+              : mode === "shelter"
+                ? "Submitting application…"
+                : "Creating account…"
           : method === "magic"
             ? "Send magic link"
             : mode === "signin"
               ? "Sign in"
-              : "Create account"}
+              : mode === "shelter"
+                ? "Submit application"
+                : "Create account"}
       </Button>
 
       {method === "magic" && (

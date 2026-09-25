@@ -14,8 +14,17 @@ import {
   passwordSignInSchema,
 } from "./schema";
 import { AUTH_NEXT_COOKIE, AUTH_SHELTER_INTENT_COOKIE } from "./constants";
-import { ensureShelterProfile } from "./promote-shelter";
+import { submitShelterApplication } from "./promote-shelter";
 import type { ActionResult } from "./types";
+
+type ShelterIntentCookie = {
+  handle: string;
+  orgName: string;
+  displayName: string;
+  website?: string;
+  countryCode?: string;
+  message?: string;
+};
 
 function siteOrigin(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -64,7 +73,7 @@ function mapPasswordError(message: string): string {
 
 async function setAuthCookies(params: {
   next: string;
-  shelterIntent?: { handle: string; orgName: string; displayName: string };
+  shelterIntent?: ShelterIntentCookie;
 }) {
   const cookieStore = await cookies();
   cookieStore.set(AUTH_NEXT_COOKIE, params.next, {
@@ -100,7 +109,7 @@ async function sendMagicLink(params: {
   email: string;
   next: string;
   data?: Record<string, string>;
-  shelterIntent?: { handle: string; orgName: string; displayName: string };
+  shelterIntent?: ShelterIntentCookie;
 }): Promise<ActionResult> {
   const limited = rateLimit(
     `magic-link:${params.email.toLowerCase()}`,
@@ -185,9 +194,9 @@ export async function signUpAdopter(input: unknown): Promise<ActionResult> {
 }
 
 /**
- * New shelter account via magic link. Profile is created as adopter by the DB
- * trigger; after the user confirms the link we promote role + insert shelters
- * row in the callback via ensureShelterProfile.
+ * Request to join as a shelter (magic link). Creates an adopter account;
+ * after email confirm the callback inserts a pending shelter_applications row.
+ * Admin must approve before role=shelter / Studio access.
  */
 export async function signUpShelter(input: unknown): Promise<ActionResult> {
   const parsed = magicLinkShelterSchema.safeParse(input);
@@ -203,7 +212,7 @@ export async function signUpShelter(input: unknown): Promise<ActionResult> {
     return {
       ok: false,
       error:
-        "Shelter sign-up needs SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only). Copy it from Supabase → Project Settings → API.",
+        "Shelter applications need SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only). Copy it from Supabase → Project Settings → API.",
     };
   }
 
@@ -216,19 +225,43 @@ export async function signUpShelter(input: unknown): Promise<ActionResult> {
     return { ok: false, error: "That handle is already taken." };
   }
 
+  const { data: pendingHandle } = await admin
+    .from("shelter_applications")
+    .select("id")
+    .eq("handle", parsed.data.handle)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (pendingHandle) {
+    return {
+      ok: false,
+      error: "That handle is reserved by another pending application.",
+    };
+  }
+
+  const website = (parsed.data.website ?? "").trim();
+  const countryCode =
+    (parsed.data.countryCode ?? "XX").trim().toUpperCase() || "XX";
+  const message = (parsed.data.message ?? "").trim();
+
   return sendMagicLink({
     email: parsed.data.email,
-    next: safeNextPath(parsed.data.next ?? "/studio"),
+    next: safeNextPath(parsed.data.next ?? "/me?applied=shelter"),
     data: {
       display_name: parsed.data.displayName,
       intent: "shelter",
       org_name: parsed.data.orgName,
       handle: parsed.data.handle,
+      website,
+      country_code: countryCode,
+      message,
     },
     shelterIntent: {
       handle: parsed.data.handle,
       orgName: parsed.data.orgName,
       displayName: parsed.data.displayName,
+      website,
+      countryCode,
+      message,
     },
   });
 }
@@ -338,12 +371,15 @@ export async function signUpAdopterWithPassword(
 }
 
 /**
- * New shelter with password. Promotes immediately when a session is returned;
- * otherwise relies on the intent cookie + auth/callback after email confirm.
+ * Request to join as a shelter with password.
+ * Creates an adopter account and a pending shelter_applications row.
+ * Does NOT promote to role=shelter until an admin approves.
  */
 export async function signUpShelterWithPassword(
   input: unknown,
-): Promise<ActionResult<{ needsEmailConfirm: boolean }>> {
+): Promise<
+  ActionResult<{ needsEmailConfirm: boolean; applicationSubmitted?: boolean }>
+> {
   const parsed = passwordShelterSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -357,7 +393,7 @@ export async function signUpShelterWithPassword(
     return {
       ok: false,
       error:
-        "Shelter sign-up needs SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only). Copy it from Supabase → Project Settings → API.",
+        "Shelter applications need SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only). Copy it from Supabase → Project Settings → API.",
     };
   }
 
@@ -368,6 +404,19 @@ export async function signUpShelterWithPassword(
     .maybeSingle();
   if (existing) {
     return { ok: false, error: "That handle is already taken." };
+  }
+
+  const { data: pendingHandle } = await admin
+    .from("shelter_applications")
+    .select("id")
+    .eq("handle", parsed.data.handle)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (pendingHandle) {
+    return {
+      ok: false,
+      error: "That handle is reserved by another pending application.",
+    };
   }
 
   const emailKey = parsed.data.email.toLowerCase();
@@ -387,12 +436,19 @@ export async function signUpShelterWithPassword(
     };
   }
 
-  const next = safeNextPath(parsed.data.next ?? "/studio");
+  const next = safeNextPath(parsed.data.next ?? "/me?applied=shelter");
   const origin = siteOrigin();
-  const shelterIntent = {
+  const website = (parsed.data.website ?? "").trim();
+  const countryCode =
+    (parsed.data.countryCode ?? "XX").trim().toUpperCase() || "XX";
+  const message = (parsed.data.message ?? "").trim();
+  const shelterIntent: ShelterIntentCookie = {
     handle: parsed.data.handle,
     orgName: parsed.data.orgName,
     displayName: parsed.data.displayName,
+    website,
+    countryCode,
+    message,
   };
 
   await setAuthCookies({ next, shelterIntent });
@@ -407,6 +463,9 @@ export async function signUpShelterWithPassword(
         intent: "shelter",
         org_name: parsed.data.orgName,
         handle: parsed.data.handle,
+        website,
+        country_code: countryCode,
+        message,
       },
     },
   });
@@ -417,15 +476,18 @@ export async function signUpShelterWithPassword(
   }
 
   if (data.session && data.user) {
-    const promote = await ensureShelterProfile(
+    const applied = await submitShelterApplication(
       data.user.id,
       data.user.user_metadata ?? {},
       shelterIntent,
     );
-    if (!promote.ok) {
-      return { ok: false, error: promote.error };
+    if (!applied.ok) {
+      return { ok: false, error: applied.error };
     }
-    redirect(next);
+    return {
+      ok: true,
+      data: { needsEmailConfirm: false, applicationSubmitted: true },
+    };
   }
 
   return { ok: true, data: { needsEmailConfirm: true } };
