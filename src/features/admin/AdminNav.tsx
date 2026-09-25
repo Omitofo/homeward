@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignOutButton } from "@/features/auth";
+import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
 
