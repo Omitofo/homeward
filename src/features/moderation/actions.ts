@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/features/auth/session";
 import type { ActionResult } from "@/features/auth/types";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, RATE_LIMITS } from "@/lib/security";
 import {
   resolveReportSchema,
@@ -208,17 +209,27 @@ export async function resolveReport(
     return { ok: false, error: "Report already resolved" };
   }
 
+  // Privileged mutations (hide / archive) use service role so admin is not
+  // blocked by owner-only RLS on animal_posts, and comment hide always works.
+  const admin = createAdminClient();
+  const writer = admin ?? supabase;
+
   if (action === "hide_comment") {
     if (existing.target_type !== "comment") {
       return { ok: false, error: "Target is not a comment" };
     }
-    const { error: hideError } = await supabase
+    const { error: hideError } = await writer
       .from("comments")
       .update({ hidden_at: now })
       .eq("id", existing.target_id);
     if (hideError) {
       console.error("[resolveReport] hide", hideError.message);
-      return { ok: false, error: "Could not hide comment" };
+      return {
+        ok: false,
+        error: admin
+          ? "Could not hide comment"
+          : "Could not hide comment (set SUPABASE_SERVICE_ROLE_KEY for admin actions)",
+      };
     }
   }
 
@@ -226,13 +237,18 @@ export async function resolveReport(
     if (existing.target_type !== "post") {
       return { ok: false, error: "Target is not a post" };
     }
-    const { error: archError } = await supabase
+    const { error: archError } = await writer
       .from("animal_posts")
       .update({ status: "archived" })
       .eq("id", existing.target_id);
     if (archError) {
       console.error("[resolveReport] archive", archError.message);
-      return { ok: false, error: "Could not archive post" };
+      return {
+        ok: false,
+        error: admin
+          ? "Could not archive post"
+          : "Could not archive post (set SUPABASE_SERVICE_ROLE_KEY for admin actions)",
+      };
     }
   }
 
@@ -252,6 +268,7 @@ export async function resolveReport(
   }
 
   revalidatePath("/admin/reports");
+  revalidatePath("/admin");
   if (existing.target_type === "post") {
     revalidatePath(`/post/${existing.target_id}`);
     revalidatePath("/explore");

@@ -35,13 +35,10 @@ export default async function AdminVerificationPage() {
 
   return (
     <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Verification queue
-        </h1>
-        <p className="text-xs text-muted">Signed in as {ctx.profile.displayName}</p>
-      </div>
-      <p className="text-sm text-muted">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        Verification queue
+      </h1>
+      <p className="mt-1 text-sm text-muted">
         Review rescue evidence, then approve, reject, or request more info.
         Decisions update the public Verified badge immediately.
       </p>
@@ -72,8 +69,8 @@ export default async function AdminVerificationPage() {
       ) : null}
 
       <p className="mt-10 text-sm">
-        <Link href="/" className="font-medium text-primary hover:underline">
-          ← Home
+        <Link href="/admin" className="font-medium text-primary hover:underline">
+          ← Command center
         </Link>
       </p>
     </main>

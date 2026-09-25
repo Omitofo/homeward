@@ -32,23 +32,10 @@ export default async function AdminReportsPage() {
 
   return (
     <main id="main-content" className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-        <nav className="flex gap-3 text-sm" aria-label="Admin sections">
-          <Link
-            href="/admin/verification"
-            className="text-muted hover:text-foreground"
-          >
-            Verification
-          </Link>
-          <span className="font-medium text-foreground" aria-current="page">
-            Reports
-          </span>
-        </nav>
-      </div>
-      <p className="text-sm text-muted">
+      <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
+      <p className="mt-1 text-sm text-muted">
         Review user reports. Dismiss noise, hide abusive comments, or archive
-        posts.
+        posts. Hide and archive use the service-role key when configured.
       </p>
 
       {!result.ok ? (
@@ -77,8 +64,8 @@ export default async function AdminReportsPage() {
       ) : null}
 
       <p className="mt-10 text-sm">
-        <Link href="/" className="font-medium text-primary hover:underline">
-          ← Home
+        <Link href="/admin" className="font-medium text-primary hover:underline">
+          ← Command center
         </Link>
       </p>
     </main>
