@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/features/auth";
 import { getConversationMessages, ChatThread } from "@/features/chat";
+import { AppHeader } from "@/components/layout/AppHeader";
 
 export const metadata: Metadata = {
   title: "Chat",
@@ -27,52 +28,69 @@ export default async function ConversationPage({ params }: Props) {
       notFound();
     }
     return (
-      <main id="main-content" className="mx-auto max-w-2xl px-4 py-8">
-        <p className="text-sm text-danger" role="alert">
-          {result.error}
-        </p>
-      </main>
+      <div className="min-h-full">
+        <AppHeader
+          profile={profile}
+          active="messages"
+          maxWidthClassName="max-w-2xl"
+          showMotionToggle={false}
+          loginNext={`/messages/${id}`}
+        />
+        <main id="main-content" className="mx-auto max-w-2xl px-4 py-8">
+          <p className="text-sm text-danger" role="alert">
+            {result.error}
+          </p>
+        </main>
+      </div>
     );
   }
 
   const { messages, peerName, postCards } = result.data;
 
   return (
-    <main
-      id="main-content"
-      className="mx-auto flex min-h-[70vh] max-w-2xl flex-col px-4 py-6"
-    >
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <div>
+    <div className="min-h-full">
+      <AppHeader
+        profile={profile}
+        active="messages"
+        maxWidthClassName="max-w-2xl"
+        showMotionToggle={false}
+        loginNext={`/messages/${id}`}
+      />
+
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-[70vh] max-w-2xl flex-col px-4 py-6"
+      >
+        <div className="mb-4">
           <p className="text-sm">
-            <Link href="/messages" className="text-primary hover:underline">
+            <Link href="/messages" className="text-muted hover:text-foreground hover:underline">
               ← Messages
             </Link>
           </p>
-          <h1 className="text-xl font-semibold tracking-tight">{peerName}</h1>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight">{peerName}</h1>
           <p className="text-xs text-muted">
             One thread with this rescue. Animal cards appear when you contact
             from a post.
           </p>
         </div>
-      </div>
 
-      <div
-        className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground"
-        role="note"
-      >
-        <strong className="font-medium">Stay safe:</strong> Never send money or
-        personal financial details before meeting the animal and the rescue in
-        person. Homeward does not process payments.
-      </div>
+        <div
+          className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground"
+          role="note"
+        >
+          <strong className="font-medium">Stay safe:</strong> Never send money or
+          personal financial details before meeting the animal and the rescue in
+          person. Homeward does not process payments.
+        </div>
 
-      <ChatThread
-        conversationId={id}
-        initialMessages={messages}
-        currentUserId={profile.id}
-        peerName={peerName}
-        postCards={postCards}
-      />
-    </main>
+        <ChatThread
+          conversationId={id}
+          initialMessages={messages}
+          currentUserId={profile.id}
+          peerName={peerName}
+          postCards={postCards}
+        />
+      </main>
+    </div>
   );
 }

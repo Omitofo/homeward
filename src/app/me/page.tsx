@@ -10,8 +10,7 @@ import {
   SavedAnimalsGrid,
 } from "@/features/engagement";
 import { postsRepository } from "@/features/posts";
-import { MessagesNavLink } from "@/features/chat";
-import { siteConfig } from "@/config/site";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export const metadata: Metadata = {
@@ -38,23 +37,26 @@ export default async function MePage() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-12">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            {siteConfig.name}
-          </Link>
-          <div className="flex items-center gap-3">
-            <MessagesNavLink />
-            <SignOutButton />
+      <AppHeader
+        profile={profile}
+        active="me"
+        maxWidthClassName="max-w-2xl"
+        showMotionToggle={false}
+        loginNext="/me"
+      />
+
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Your account</h1>
+            <p className="mt-1 text-sm text-muted">
+              Manage your profile, saved animals, searches, and data.
+            </p>
           </div>
+          <SignOutButton />
         </div>
 
-        <h1 className="text-2xl font-semibold tracking-tight">Your account</h1>
-        <p className="mt-1 text-sm text-muted">
-          Manage your profile, saved animals, searches, and data.
-        </p>
-
-        <dl className="mt-8 space-y-4 rounded-lg border border-border bg-card p-5 text-sm">
+        <dl className="mt-2 space-y-4 rounded-lg border border-border bg-card p-5 text-sm">
           <div>
             <dt className="text-muted">Name</dt>
             <dd className="mt-0.5 font-medium">{profile.displayName}</dd>
@@ -146,12 +148,6 @@ export default async function MePage() {
           {" · "}
           <Link href="/terms" className="font-medium text-primary hover:underline">
             Terms
-          </Link>
-        </p>
-
-        <p className="mt-6">
-          <Link href="/explore" className="text-sm font-medium text-primary hover:underline">
-            ← Back to explore
           </Link>
         </p>
       </main>
