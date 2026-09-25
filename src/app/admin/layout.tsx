@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
-import { AdminNav, requireAdminContext } from "@/features/admin";
+import {
+  AdminNav,
+  getAdminQueueCounts,
+  requireAdminContext,
+} from "@/features/admin";
 
 export default async function AdminLayout({
   children,
@@ -12,9 +16,11 @@ export default async function AdminLayout({
     return <div className="min-h-full bg-background">{children}</div>;
   }
 
+  const counts = await getAdminQueueCounts();
+
   return (
     <div className="min-h-full bg-background">
-      <AdminNav displayName={ctx.profile.displayName} />
+      <AdminNav displayName={ctx.profile.displayName} counts={counts} />
       {children}
     </div>
   );

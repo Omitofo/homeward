@@ -13,6 +13,7 @@ import {
   CommentSection,
 } from "@/features/engagement";
 import { MessagesNavLink } from "@/features/chat";
+import { AdminNavLink } from "@/features/admin";
 import { MotionToggle } from "@/motion/components/MotionToggle";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
@@ -136,14 +137,7 @@ export default async function PostDetailPage({ params }: Props) {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Admin
-              </Link>
-            ) : null}
+            {isAdmin ? <AdminNavLink /> : null}
             {isShelter ? (
               <Link
                 href="/studio"
