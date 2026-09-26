@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Badge, EmptyState, VerifiedBadge } from "@/components/ui";
+import {
+  EmptyState,
+  ShelterVerificationBadge,
+  VerificationRequestBadge,
+} from "@/components/ui";
 import { requireShelterContext, StudioNav } from "@/features/studio";
 import {
   listOwnVerificationRequests,
   VerificationRequestForm,
 } from "@/features/verification";
+import { MessageAdminButton } from "@/features/chat";
 
 export const metadata: Metadata = {
   title: "Verification · Studio",
@@ -35,8 +40,12 @@ export default async function StudioVerificationPage() {
   const historyResult = await listOwnVerificationRequests();
   const history = historyResult.ok ? historyResult.data : [];
 
-  const canRequest =
-    status === "unverified" || status === "rejected";
+  const canRequest = status === "unverified" || status === "rejected";
+  const showMessageAdmin =
+    status === "pending" ||
+    status === "rejected" ||
+    status === "unverified" ||
+    history.some((r) => r.status === "pending" || r.status === "needs_info");
 
   return (
     <>
@@ -50,12 +59,8 @@ export default async function StudioVerificationPage() {
 
         <div className="mt-8 rounded-lg border border-border bg-card p-5">
           <p className="text-sm text-muted">Current status</p>
-          <div className="mt-2 flex items-center gap-2">
-            {status === "verified" ? (
-              <VerifiedBadge />
-            ) : (
-              <Badge variant="neutral">{status}</Badge>
-            )}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <ShelterVerificationBadge status={status} />
           </div>
 
           {status === "unverified" && (
@@ -66,8 +71,8 @@ export default async function StudioVerificationPage() {
           )}
           {status === "pending" && (
             <p className="mt-4 text-sm text-muted">
-              Your request is in the admin queue. We will update this page when a
-              decision is made.
+              Your request is in the admin queue. You can message an admin if you
+              need to add context or ask a question while you wait.
             </p>
           )}
           {status === "verified" && (
@@ -79,9 +84,24 @@ export default async function StudioVerificationPage() {
           {status === "rejected" && (
             <p className="mt-4 text-sm text-muted">
               A previous request was not approved. You can submit a new request
-              with updated documents below.
+              with updated documents below, or message an admin about the
+              decision.
             </p>
           )}
+
+          {showMessageAdmin && status !== "verified" ? (
+            <div className="mt-5 border-t border-border pt-4">
+              <p className="mb-2 text-xs text-muted">
+                Opens a private chat with Homeward support and includes your
+                rescue name and verification status.
+              </p>
+              <MessageAdminButton
+                orgName={shelter.orgName}
+                handle={shelter.handle}
+                verificationStatus={status}
+              />
+            </div>
+          ) : null}
         </div>
 
         {canRequest ? (
@@ -106,7 +126,7 @@ export default async function StudioVerificationPage() {
                   className="rounded-lg border border-border bg-card px-4 py-3 text-sm"
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="neutral">{r.status}</Badge>
+                    <VerificationRequestBadge status={r.status} />
                     <span className="text-xs text-muted">
                       {new Date(r.createdAt).toLocaleString()}
                     </span>
