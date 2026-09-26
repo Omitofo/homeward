@@ -83,7 +83,8 @@ export const RATE_LIMITS = {
   /** Password sign-in / sign-up attempts per email. */
   passwordAuth: { limit: 10, windowMs: 15 * 60_000 },
   comment: { limit: 20, windowMs: 60_000 },
-  message: { limit: 30, windowMs: 60_000 },
+  /** Max 50 messages per 30 minutes (all roles). */
+  message: { limit: 50, windowMs: 30 * 60_000 },
   upload: { limit: 30, windowMs: 60 * 60_000 },
   report: { limit: 10, windowMs: 60 * 60_000 },
   startChat: { limit: 10, windowMs: 60 * 60_000 },

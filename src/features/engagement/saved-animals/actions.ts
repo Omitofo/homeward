@@ -22,7 +22,7 @@ function isUuid(id: string): boolean {
 }
 
 /**
- * Toggle save for the current user.
+ * Toggle save for the current user (adopter, shelter, or admin).
  * - Real mode: Postgres saved_animals table (RLS).
  * - Mock mode: client keeps state in localStorage (non-UUID mock ids).
  */
@@ -38,10 +38,6 @@ export async function toggleSave(
   const profile = await getCurrentProfile();
   if (!profile) {
     return { ok: false, error: "Sign in to save animals" };
-  }
-
-  if (profile.role === "shelter") {
-    return { ok: false, error: "Shelter accounts cannot save animals" };
   }
 
   const nextSaved = !currentlySaved;

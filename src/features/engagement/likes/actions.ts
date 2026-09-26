@@ -21,7 +21,7 @@ function isUuid(id: string): boolean {
 }
 
 /**
- * Toggle like for the current user.
+ * Toggle like for the current user (adopter, shelter, or admin).
  * - Real mode: Postgres likes table (RLS + count trigger).
  * - Mock mode: auth-gated only; client keeps the heart state in localStorage
  *   because mock post ids are not real UUIDs in animal_posts.
@@ -39,10 +39,6 @@ export async function toggleLike(
   const profile = await getCurrentProfile();
   if (!profile) {
     return { ok: false, error: "Sign in to like animals" };
-  }
-
-  if (profile.role === "shelter") {
-    return { ok: false, error: "Shelter accounts cannot like posts" };
   }
 
   const nextLiked = !currentlyLiked;
