@@ -26,7 +26,6 @@ export default async function MessagesPage() {
         profile={profile}
         active="messages"
         maxWidthClassName="max-w-2xl"
-        showMotionToggle={false}
         loginNext="/messages"
       />
 
