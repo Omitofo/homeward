@@ -43,7 +43,7 @@ export default async function MePage({ searchParams }: Props) {
 
   const [saved, savedAnimals, mockPage, shelterApplication] = await Promise.all([
     listSavedSearches(),
-    isShelter ? Promise.resolve([]) : listSavedAnimals(),
+    listSavedAnimals(),
     postsRepository.list({ limit: 48 }),
     isShelter ? Promise.resolve(null) : getMyShelterApplication(),
   ]);
@@ -122,19 +122,19 @@ export default async function MePage({ searchParams }: Props) {
           </p>
         ) : null}
 
+        <section className="mt-10 space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            Saved animals
+          </h2>
+          <SavedAnimalsGrid
+            initial={savedAnimals}
+            userId={profile.id}
+            mockCandidates={mockCandidates}
+          />
+        </section>
+
         {!isShelter ? (
           <>
-            <section className="mt-10 space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                Saved animals
-              </h2>
-              <SavedAnimalsGrid
-                initial={savedAnimals}
-                userId={profile.id}
-                mockCandidates={mockCandidates}
-              />
-            </section>
-
             <section className="mt-10 space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
                 Saved searches
@@ -154,31 +154,7 @@ export default async function MePage({ searchParams }: Props) {
               </p>
             ) : null}
           </>
-        ) : (
-          <section className="mt-10 space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Adopter tools
-            </h2>
-            <p className="text-sm text-muted">
-              Saved animals and searches are for adopter accounts.
-              {isAdmin
-                ? " Use the command center for moderation queues."
-                : (
-                    <>
-                      {" "}
-                      See like and comment counts on each post in{" "}
-                      <Link
-                        href="/studio"
-                        className="font-medium text-primary hover:underline"
-                      >
-                        Studio
-                      </Link>
-                      .
-                    </>
-                  )}
-            </p>
-          </section>
-        )}
+        ) : null}
 
         <AccountPrivacy />
 

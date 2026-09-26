@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/features/auth";
-import { getConversationMessages, ChatThread } from "@/features/chat";
+import {
+  getConversationMessages,
+  ChatThread,
+  CloseConversationButton,
+} from "@/features/chat";
 import { AppHeader } from "@/components/layout/AppHeader";
 
 export const metadata: Metadata = {
@@ -44,7 +48,7 @@ export default async function ConversationPage({ params }: Props) {
     );
   }
 
-  const { messages, peerName, postCards } = result.data;
+  const { messages, peerName, postCards, status } = result.data;
 
   return (
     <div className="min-h-full">
@@ -59,17 +63,26 @@ export default async function ConversationPage({ params }: Props) {
         id="main-content"
         className="mx-auto flex min-h-[70vh] max-w-2xl flex-col px-4 py-6"
       >
-        <div className="mb-4">
-          <p className="text-sm">
-            <Link href="/messages" className="text-muted hover:text-foreground hover:underline">
-              ← Messages
-            </Link>
-          </p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight">{peerName}</h1>
-          <p className="text-xs text-muted">
-            One thread with this rescue. Animal cards appear when you contact
-            from a post.
-          </p>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm">
+              <Link
+                href="/messages"
+                className="text-muted hover:text-foreground hover:underline"
+              >
+                ← Messages
+              </Link>
+            </p>
+            <h1 className="mt-1 text-xl font-semibold tracking-tight">
+              {peerName}
+            </h1>
+            <p className="text-xs text-muted">
+              {status === "closed"
+                ? "Conversation closed"
+                : "Private thread. Never send money before meeting in person."}
+            </p>
+          </div>
+          <CloseConversationButton conversationId={id} status={status} />
         </div>
 
         <div
@@ -87,6 +100,7 @@ export default async function ConversationPage({ params }: Props) {
           currentUserId={profile.id}
           peerName={peerName}
           postCards={postCards}
+          status={status}
         />
       </main>
     </div>

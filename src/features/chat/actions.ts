@@ -11,16 +11,20 @@ import { postsRepository } from "@/features/posts";
 import {
   sendMessageSchema,
   startConversationSchema,
+  closeConversationSchema,
   extractPostIdsFromBody,
   type ChatMessage,
   type ChatPostCard,
+  type ConversationStatus,
   type ConversationSummary,
 } from "./schema";
 import {
   appendMockMessage,
+  closeMockConversation,
   findMockConversation,
   getMockConversation,
   listMockConversationsForUser,
+  reopenMockConversation,
   totalMockUnreadForUser,
   upsertMockConversation,
 } from "./mock-store";
@@ -133,7 +137,7 @@ export async function listConversations(): Promise<
     .from("conversations")
     .select(
       `
-      id, adopter_id, shelter_profile_id, post_id, created_at, updated_at,
+      id, adopter_id, shelter_profile_id, post_id, status, created_at, updated_at,
       messages ( body, created_at, sender_id, read_at )
     `,
     )
@@ -175,6 +179,7 @@ export async function listConversations(): Promise<
         adopterId: row.adopter_id,
         shelterProfileId: row.shelter_profile_id,
         postId: row.post_id,
+        status: (row.status as ConversationStatus) ?? "open",
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         peerName: peer?.display_name ?? "Member",
@@ -194,6 +199,7 @@ export async function getConversationMessages(
     messages: ChatMessage[];
     peerName: string;
     postId: string | null;
+    status: ConversationStatus;
     postCards: Record<string, ChatPostCard>;
   }>
 > {
@@ -210,6 +216,7 @@ export async function getConversationMessages(
         messages: c.messages,
         peerName: c.peerName,
         postId: c.postId,
+        status: c.status ?? "open",
         postCards,
       },
     };
@@ -220,7 +227,7 @@ export async function getConversationMessages(
 
   const { data: conv, error: convError } = await supabase
     .from("conversations")
-    .select("id, adopter_id, shelter_profile_id, post_id")
+    .select("id, adopter_id, shelter_profile_id, post_id, status")
     .eq("id", conversationId)
     .maybeSingle();
 
@@ -279,22 +286,27 @@ export async function getConversationMessages(
     data: {
       peerName: peer?.display_name ?? "Member",
       postId: conv.post_id,
+      status: (conv.status as ConversationStatus) ?? "open",
       messages,
       postCards,
     },
   };
 }
 
+/**
+ * Start (or resume) a chat with a shelter.
+ * Adopters may contact any shelter; shelters may contact other shelters only.
+ */
 export async function startConversation(
   raw: unknown,
 ): Promise<ActionResult<{ id: string }>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   if (profile.role === "shelter") {
-    return {
-      ok: false,
-      error: "Shelters reply in existing threads; adopters start the chat",
-    };
+    // Allowed: shelter → other shelter (checked after resolve)
+  } else if (profile.role !== "adopter" && profile.role !== "admin") {
+    return { ok: false, error: "Cannot start a chat with this account" };
   }
 
   const limited = rateLimit(`start-chat:${profile.id}`, RATE_LIMITS.startChat);
@@ -325,19 +337,26 @@ export async function startConversation(
     return { ok: false, error: "Cannot message yourself" };
   }
 
+  // Default intro for shelter-to-shelter when none provided
+  const body =
+    initialMessage ??
+    (profile.role === "shelter"
+      ? "Hi! Reaching out from our rescue — happy to coordinate if useful."
+      : undefined);
+
   if (useMock) {
     const existing = findMockConversation(profile.id, shelterProfileId);
     if (existing) {
-      if (initialMessage) {
+      if (body) {
         const msg: ChatMessage = {
           id: `m-${randomUUID().slice(0, 8)}`,
           conversationId: existing.id,
           senderId: profile.id,
-          body: initialMessage,
+          body,
           createdAt: new Date().toISOString(),
           readAt: null,
         };
-        appendMockMessage(existing.id, msg, initialMessage.slice(0, 120));
+        appendMockMessage(existing.id, msg, body.slice(0, 120));
       }
       return { ok: true, data: { id: existing.id } };
     }
@@ -345,12 +364,12 @@ export async function startConversation(
     const id = `c-${randomUUID().slice(0, 8)}`;
     const now = new Date().toISOString();
     const messages: ChatMessage[] = [];
-    if (initialMessage) {
+    if (body) {
       messages.push({
         id: `m-${randomUUID().slice(0, 8)}`,
         conversationId: id,
         senderId: profile.id,
-        body: initialMessage,
+        body,
         createdAt: now,
         readAt: null,
       });
@@ -360,10 +379,11 @@ export async function startConversation(
       adopterId: profile.id,
       shelterProfileId,
       postId: postId ?? null,
+      status: "open",
       createdAt: now,
       updatedAt: now,
       peerName: shelter.orgName,
-      lastMessagePreview: initialMessage?.slice(0, 120) ?? null,
+      lastMessagePreview: body?.slice(0, 120) ?? null,
       unreadCount: 0,
       messages,
     });
@@ -374,9 +394,10 @@ export async function startConversation(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
 
+  // Pair key: initiator (adopter_id) + target shelter (shelter_profile_id)
   const { data: existing } = await supabase
     .from("conversations")
-    .select("id")
+    .select("id, status")
     .eq("adopter_id", profile.id)
     .eq("shelter_profile_id", shelterProfileId)
     .maybeSingle();
@@ -391,23 +412,34 @@ export async function startConversation(
         adopter_id: profile.id,
         shelter_profile_id: shelterProfileId,
         post_id: postId ?? null,
+        status: "open",
       })
       .select("id")
       .single();
 
     if (error || !created?.id) {
       console.error("[startConversation]", error?.message);
-      return { ok: false, error: "Could not start conversation" };
+      return {
+        ok: false,
+        error:
+          error?.message?.includes("policy") || error?.code === "42501"
+            ? "Could not start conversation (permissions). Run migration 20260926150000 if needed."
+            : "Could not start conversation",
+      };
     }
     conversationId = created.id;
   }
 
-  if (initialMessage) {
-    await supabase.from("messages").insert({
+  if (body) {
+    const { error: msgError } = await supabase.from("messages").insert({
       conversation_id: conversationId,
       sender_id: profile.id,
-      body: initialMessage,
+      body,
     });
+    if (msgError) {
+      console.error("[startConversation] message", msgError.message);
+      // Conversation exists; still return id so user can open thread
+    }
   }
 
   revalidatePath("/messages");
@@ -427,7 +459,7 @@ export async function sendMessage(
   if (!limited.ok) {
     return {
       ok: false,
-      error: `Too many messages. Wait about ${limited.retryAfterSec}s and try again.`,
+      error: `Message limit reached (50 per 30 minutes). Wait about ${limited.retryAfterSec}s and try again.`,
     };
   }
 
@@ -445,6 +477,12 @@ export async function sendMessage(
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
     if (!c) return { ok: false, error: "Conversation not found" };
+    if (c.status === "closed") {
+      return {
+        ok: false,
+        error: "This conversation is closed. No new messages can be sent.",
+      };
+    }
     const msg: ChatMessage = {
       id: `m-${randomUUID().slice(0, 8)}`,
       conversationId,
@@ -464,6 +502,27 @@ export async function sendMessage(
 
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id, status, adopter_id, shelter_profile_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+
+  if (!conv) return { ok: false, error: "Conversation not found" };
+  if (
+    conv.adopter_id !== profile.id &&
+    conv.shelter_profile_id !== profile.id &&
+    profile.role !== "admin"
+  ) {
+    return { ok: false, error: "Access denied" };
+  }
+  if (conv.status === "closed") {
+    return {
+      ok: false,
+      error: "This conversation is closed. No new messages can be sent.",
+    };
+  }
 
   const { data, error } = await supabase
     .from("messages")
@@ -490,4 +549,132 @@ export async function sendMessage(
       createdAt: data.created_at,
     },
   };
+}
+
+/** Close (block) a conversation — either participant. Stops new messages. */
+export async function closeConversation(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Sign in required" };
+
+  const parsed = closeConversationSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid",
+    };
+  }
+
+  const { conversationId, reason } = parsed.data;
+  const now = new Date().toISOString();
+
+  if (useMock) {
+    const ok = closeMockConversation(
+      conversationId,
+      profile.id,
+      reason ?? "",
+    );
+    if (!ok) return { ok: false, error: "Conversation not found" };
+    revalidatePath(`/messages/${conversationId}`);
+    revalidatePath("/messages");
+    return { ok: true, data: { id: conversationId } };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id, adopter_id, shelter_profile_id, status")
+    .eq("id", conversationId)
+    .maybeSingle();
+
+  if (!conv) return { ok: false, error: "Conversation not found" };
+  if (
+    conv.adopter_id !== profile.id &&
+    conv.shelter_profile_id !== profile.id &&
+    profile.role !== "admin"
+  ) {
+    return { ok: false, error: "Access denied" };
+  }
+  if (conv.status === "closed") {
+    return { ok: true, data: { id: conversationId } };
+  }
+
+  const { error } = await supabase
+    .from("conversations")
+    .update({
+      status: "closed",
+      closed_by: profile.id,
+      closed_at: now,
+      close_reason: reason ?? "",
+    })
+    .eq("id", conversationId);
+
+  if (error) {
+    console.error("[closeConversation]", error.message);
+    return {
+      ok: false,
+      error:
+        "Could not close conversation. Run migration 20260926150000 if needed.",
+    };
+  }
+
+  revalidatePath(`/messages/${conversationId}`);
+  revalidatePath("/messages");
+  return { ok: true, data: { id: conversationId } };
+}
+
+/** Re-open a closed conversation (either participant). */
+export async function reopenConversation(
+  conversationId: string,
+): Promise<ActionResult<{ id: string }>> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Sign in required" };
+
+  if (useMock) {
+    const ok = reopenMockConversation(conversationId, profile.id);
+    if (!ok) return { ok: false, error: "Conversation not found" };
+    revalidatePath(`/messages/${conversationId}`);
+    revalidatePath("/messages");
+    return { ok: true, data: { id: conversationId } };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id, adopter_id, shelter_profile_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+
+  if (!conv) return { ok: false, error: "Conversation not found" };
+  if (
+    conv.adopter_id !== profile.id &&
+    conv.shelter_profile_id !== profile.id &&
+    profile.role !== "admin"
+  ) {
+    return { ok: false, error: "Access denied" };
+  }
+
+  const { error } = await supabase
+    .from("conversations")
+    .update({
+      status: "open",
+      closed_by: null,
+      closed_at: null,
+      close_reason: "",
+    })
+    .eq("id", conversationId);
+
+  if (error) {
+    console.error("[reopenConversation]", error.message);
+    return { ok: false, error: "Could not reopen conversation" };
+  }
+
+  revalidatePath(`/messages/${conversationId}`);
+  revalidatePath("/messages");
+  return { ok: true, data: { id: conversationId } };
 }
