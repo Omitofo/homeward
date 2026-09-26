@@ -1,8 +1,10 @@
-import type { ChatMessage, ConversationStatus, ConversationSummary } from "./schema";
+import type { ChatMessage, ConversationSummary } from "./schema";
 
 type MockConversation = ConversationSummary & {
   messages: ChatMessage[];
   closedBy?: string | null;
+  /** user ids who hid this conversation from their inbox */
+  hiddenFor?: Set<string>;
 };
 
 const store = new Map<string, MockConversation>();
@@ -12,16 +14,19 @@ export function listMockConversationsForUser(
 ): ConversationSummary[] {
   return [...store.values()]
     .filter(
-      (c) => c.adopterId === userId || c.shelterProfileId === userId,
+      (c) =>
+        (c.adopterId === userId || c.shelterProfileId === userId) &&
+        !c.hiddenFor?.has(userId),
     )
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .map(({ messages: _m, closedBy: _c, ...summary }) => summary);
+    .map(({ messages: _m, closedBy: _c, hiddenFor: _h, ...summary }) => summary);
 }
 
 export function totalMockUnreadForUser(userId: string): number {
   let n = 0;
   for (const c of store.values()) {
     if (c.adopterId !== userId && c.shelterProfileId !== userId) continue;
+    if (c.hiddenFor?.has(userId)) continue;
     n += c.messages.filter((m) => m.senderId !== userId && !m.readAt).length;
   }
   return n;
@@ -101,4 +106,28 @@ export function reopenMockConversation(
   c.closedBy = null;
   c.updatedAt = new Date().toISOString();
   return { ok: true };
+}
+
+export function hideMockConversation(
+  conversationId: string,
+  userId: string,
+): boolean {
+  const c = store.get(conversationId);
+  if (!c) return false;
+  if (c.adopterId !== userId && c.shelterProfileId !== userId) return false;
+  if (!c.hiddenFor) c.hiddenFor = new Set();
+  c.hiddenFor.add(userId);
+  return true;
+}
+
+/** Clear hide for the peer when sender posts a new message. */
+export function unhideMockConversationForPeer(
+  conversationId: string,
+  senderId: string,
+) {
+  const c = store.get(conversationId);
+  if (!c || !c.hiddenFor) return;
+  const peer =
+    c.adopterId === senderId ? c.shelterProfileId : c.adopterId;
+  c.hiddenFor.delete(peer);
 }
