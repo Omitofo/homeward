@@ -21,6 +21,11 @@ export const startConversationSchema = z.object({
     .optional(),
 });
 
+export const closeConversationSchema = z.object({
+  conversationId: z.string().min(1),
+  reason: z.string().trim().max(500).optional(),
+});
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
@@ -40,11 +45,14 @@ export type ChatPostCard = {
   imageAlt: string;
 };
 
+export type ConversationStatus = "open" | "closed";
+
 export type ConversationSummary = {
   id: string;
   adopterId: string;
   shelterProfileId: string;
   postId: string | null;
+  status: ConversationStatus;
   createdAt: string;
   updatedAt: string;
   peerName: string;

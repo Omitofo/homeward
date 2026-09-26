@@ -1,78 +1,92 @@
-import type { ChatMessage, ConversationSummary } from "./schema";
+import type { ChatMessage, ConversationStatus, ConversationSummary } from "./schema";
 
-type Conv = ConversationSummary & {
+type MockConversation = ConversationSummary & {
   messages: ChatMessage[];
+  closedBy?: string | null;
 };
 
-const store: Conv[] = [];
+const store = new Map<string, MockConversation>();
 
 export function listMockConversationsForUser(
   userId: string,
 ): ConversationSummary[] {
-  return store
-    .filter((c) => c.adopterId === userId || c.shelterProfileId === userId)
-    .map((c) => {
-      const { messages, ...summary } = c;
-      const unreadCount = messages.filter(
-        (m) => m.senderId !== userId && !m.readAt,
-      ).length;
-      return { ...summary, unreadCount };
-    })
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  return [...store.values()]
+    .filter(
+      (c) => c.adopterId === userId || c.shelterProfileId === userId,
+    )
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .map(({ messages: _m, closedBy: _c, ...summary }) => summary);
+}
+
+export function totalMockUnreadForUser(userId: string): number {
+  let n = 0;
+  for (const c of store.values()) {
+    if (c.adopterId !== userId && c.shelterProfileId !== userId) continue;
+    n += c.messages.filter((m) => m.senderId !== userId && !m.readAt).length;
+  }
+  return n;
+}
+
+export function findMockConversation(
+  initiatorId: string,
+  peerShelterProfileId: string,
+): MockConversation | undefined {
+  return [...store.values()].find(
+    (c) =>
+      c.adopterId === initiatorId &&
+      c.shelterProfileId === peerShelterProfileId,
+  );
 }
 
 export function getMockConversation(
   id: string,
   userId: string,
-): Conv | null {
-  const c = store.find((x) => x.id === id);
+): MockConversation | null {
+  const c = store.get(id);
   if (!c) return null;
   if (c.adopterId !== userId && c.shelterProfileId !== userId) return null;
-  // Mark peer messages as read when opening the thread (mirror Supabase path)
-  const now = new Date().toISOString();
-  for (const m of c.messages) {
-    if (m.senderId !== userId && !m.readAt) {
-      m.readAt = now;
-    }
-  }
-  c.unreadCount = 0;
   return c;
 }
 
-export function findMockConversation(
-  adopterId: string,
-  shelterProfileId: string,
-): Conv | null {
-  return (
-    store.find(
-      (c) =>
-        c.adopterId === adopterId && c.shelterProfileId === shelterProfileId,
-    ) ?? null
-  );
-}
-
-export function upsertMockConversation(conv: Conv): void {
-  const idx = store.findIndex((c) => c.id === conv.id);
-  if (idx >= 0) store[idx] = conv;
-  else store.unshift(conv);
+export function upsertMockConversation(c: MockConversation) {
+  store.set(c.id, c);
 }
 
 export function appendMockMessage(
   conversationId: string,
-  message: ChatMessage,
+  msg: ChatMessage,
   preview: string,
-): void {
-  const c = store.find((x) => x.id === conversationId);
+) {
+  const c = store.get(conversationId);
   if (!c) return;
-  c.messages.push(message);
+  c.messages.push(msg);
   c.lastMessagePreview = preview;
-  c.updatedAt = message.createdAt;
-  // Unread for the peer is derived in listMockConversationsForUser
+  c.updatedAt = msg.createdAt;
 }
 
-export function totalMockUnreadForUser(userId: string): number {
-  return listMockConversationsForUser(userId).reduce(
-    (sum, c) => sum + c.unreadCount,
-    0,
-  );
+export function closeMockConversation(
+  conversationId: string,
+  userId: string,
+  reason: string,
+): boolean {
+  const c = store.get(conversationId);
+  if (!c) return false;
+  if (c.adopterId !== userId && c.shelterProfileId !== userId) return false;
+  c.status = "closed";
+  c.closedBy = userId;
+  c.updatedAt = new Date().toISOString();
+  return true;
+}
+
+export function reopenMockConversation(
+  conversationId: string,
+  userId: string,
+): boolean {
+  const c = store.get(conversationId);
+  if (!c) return false;
+  if (c.adopterId !== userId && c.shelterProfileId !== userId) return false;
+  c.status = "open";
+  c.closedBy = null;
+  c.updatedAt = new Date().toISOString();
+  return true;
 }
