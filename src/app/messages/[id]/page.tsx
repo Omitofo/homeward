@@ -33,7 +33,6 @@ export default async function ConversationPage({ params }: Props) {
           profile={profile}
           active="messages"
           maxWidthClassName="max-w-2xl"
-          showMotionToggle={false}
           loginNext={`/messages/${id}`}
         />
         <main id="main-content" className="mx-auto max-w-2xl px-4 py-8">
@@ -53,7 +52,6 @@ export default async function ConversationPage({ params }: Props) {
         profile={profile}
         active="messages"
         maxWidthClassName="max-w-2xl"
-        showMotionToggle={false}
         loginNext={`/messages/${id}`}
       />
 
