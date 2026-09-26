@@ -48,7 +48,13 @@ export default async function ConversationPage({ params }: Props) {
     );
   }
 
-  const { messages, peerName, postCards, status } = result.data;
+  const { messages, peerName, postCards, status, closedBy } = result.data;
+  const canReopen =
+    status === "closed" &&
+    (closedBy === profile.id ||
+      profile.role === "admin" ||
+      // Legacy closed threads with no closed_by: either participant may reopen
+      closedBy == null);
 
   return (
     <div className="min-h-full">
@@ -78,11 +84,17 @@ export default async function ConversationPage({ params }: Props) {
             </h1>
             <p className="text-xs text-muted">
               {status === "closed"
-                ? "Conversation closed"
+                ? closedBy === profile.id
+                  ? "You closed this conversation"
+                  : "Conversation closed"
                 : "Private thread. Never send money before meeting in person."}
             </p>
           </div>
-          <CloseConversationButton conversationId={id} status={status} />
+          <CloseConversationButton
+            conversationId={id}
+            status={status}
+            canReopen={canReopen}
+          />
         </div>
 
         <div
