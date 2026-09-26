@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -12,10 +11,9 @@ import {
 
 export type MotionLevel = "full" | "reduced" | "off";
 
-const STORAGE_KEY = "homeward-motion";
-
 type MotionContextValue = {
   level: MotionLevel;
+  /** No-op in product; preference is automatic (full, or reduced via OS). */
   setLevel: (level: MotionLevel) => void;
   /** True when animations should run (level === "full") */
   enabled: boolean;
@@ -25,28 +23,21 @@ type MotionContextValue = {
 
 const MotionContext = createContext<MotionContextValue | null>(null);
 
-function readStored(): MotionLevel | null {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    if (v === "full" || v === "reduced" || v === "off") return v;
-  } catch {
-    // private mode / SSR
-  }
-  return null;
-}
-
 function systemPrefersReduced(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/**
+ * Product default is full motion.
+ * - OS "prefers-reduced-motion" → reduced (a11y)
+ * - `?motion=full|reduced|off` still works for e2e / demos
+ * Manual Full/Reduced/Off toggle was a lab control and is no longer exposed.
+ */
 function resolveInitial(): MotionLevel {
   if (typeof window === "undefined") return "full";
-  // Query param wins for A/B and e2e
   const param = new URLSearchParams(window.location.search).get("motion");
   if (param === "off" || param === "reduced" || param === "full") return param;
-  const stored = readStored();
-  if (stored) return stored;
   return systemPrefersReduced() ? "reduced" : "full";
 }
 
@@ -64,26 +55,29 @@ export function MotionProvider({ children }: { children: ReactNode }) {
     setLevelState(initial);
     applyToDocument(initial);
     setReady(true);
-  }, []);
 
-  const setLevel = useCallback((next: MotionLevel) => {
-    setLevelState(next);
-    applyToDocument(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore
-    }
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => {
+      const param = new URLSearchParams(window.location.search).get("motion");
+      if (param === "off" || param === "reduced" || param === "full") return;
+      const next: MotionLevel = mq.matches ? "reduced" : "full";
+      setLevelState(next);
+      applyToDocument(next);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   const value = useMemo<MotionContextValue>(
     () => ({
       level,
-      setLevel,
+      setLevel: () => {
+        /* product UI no longer exposes a toggle */
+      },
       enabled: level === "full",
       isReduced: level === "reduced" || level === "off",
     }),
-    [level, setLevel],
+    [level],
   );
 
   // Avoid flash of wrong motion setting
@@ -99,7 +93,6 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 export function useMotionPreference(): MotionContextValue {
   const ctx = useContext(MotionContext);
   if (!ctx) {
-    // Safe fallback when used outside provider (e.g. during SSR of a leaf)
     return {
       level: "full",
       setLevel: () => {},

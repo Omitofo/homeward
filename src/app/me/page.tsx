@@ -41,7 +41,6 @@ export default async function MePage() {
         profile={profile}
         active="me"
         maxWidthClassName="max-w-2xl"
-        showMotionToggle={false}
         loginNext="/me"
       />
 

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { MessagesNavLink } from "@/features/chat";
 import { AdminNavLink } from "@/features/admin";
-import { MotionToggle } from "@/motion/components/MotionToggle";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils/cn";
 import type { AuthProfile } from "@/features/auth/types";
@@ -13,7 +12,6 @@ type Props = {
   /** Which primary nav item is current (subtle weight, not a heavy chrome). */
   active?: AppHeaderActive;
   maxWidthClassName?: string;
-  showMotionToggle?: boolean;
   /** Path for login redirect when signed out. */
   loginNext?: string;
   sticky?: boolean;
@@ -32,7 +30,6 @@ export function AppHeader({
   profile,
   active = "none",
   maxWidthClassName = "max-w-6xl",
-  showMotionToggle = true,
   loginNext = "/explore",
   sticky = true,
   className,
@@ -109,8 +106,6 @@ export function AppHeader({
               Sign in
             </Link>
           )}
-
-          {showMotionToggle ? <MotionToggle /> : null}
         </div>
       </div>
     </header>

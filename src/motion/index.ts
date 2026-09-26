@@ -6,4 +6,3 @@ export {
   type MotionLevel,
 } from "./hooks/useMotionPreference";
 export { Reveal } from "./primitives/Reveal";
-export { MotionToggle } from "./components/MotionToggle";
