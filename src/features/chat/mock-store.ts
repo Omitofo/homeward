@@ -67,7 +67,7 @@ export function appendMockMessage(
 export function closeMockConversation(
   conversationId: string,
   userId: string,
-  reason: string,
+  _reason: string,
 ): boolean {
   const c = store.get(conversationId);
   if (!c) return false;
@@ -78,15 +78,27 @@ export function closeMockConversation(
   return true;
 }
 
+/** Only the user who closed the thread may reopen it. */
 export function reopenMockConversation(
   conversationId: string,
   userId: string,
-): boolean {
+): { ok: true } | { ok: false; error: string } {
   const c = store.get(conversationId);
-  if (!c) return false;
-  if (c.adopterId !== userId && c.shelterProfileId !== userId) return false;
+  if (!c) return { ok: false, error: "Conversation not found" };
+  if (c.adopterId !== userId && c.shelterProfileId !== userId) {
+    return { ok: false, error: "Access denied" };
+  }
+  if (c.status !== "closed") {
+    return { ok: true };
+  }
+  if (c.closedBy && c.closedBy !== userId) {
+    return {
+      ok: false,
+      error: "Only the person who closed this chat can reopen it.",
+    };
+  }
   c.status = "open";
   c.closedBy = null;
   c.updatedAt = new Date().toISOString();
-  return true;
+  return { ok: true };
 }

@@ -9,11 +9,14 @@ import type { ConversationStatus } from "./schema";
 type Props = {
   conversationId: string;
   status: ConversationStatus;
+  /** True when the current user is allowed to reopen (they closed it, or admin). */
+  canReopen?: boolean;
 };
 
 export function CloseConversationButton({
   conversationId,
   status,
+  canReopen = false,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -23,6 +26,7 @@ export function CloseConversationButton({
 
   const onToggle = async () => {
     if (isClosed) {
+      if (!canReopen) return;
       setBusy(true);
       setError(null);
       try {
@@ -41,7 +45,7 @@ export function CloseConversationButton({
     }
 
     const confirmed = window.confirm(
-      "Close this conversation? Neither of you will be able to send new messages until it is reopened. Use this for spam or harassment.",
+      "Close this conversation? Neither of you will be able to send new messages. Only you will be able to reopen it.",
     );
     if (!confirmed) return;
 
@@ -64,6 +68,14 @@ export function CloseConversationButton({
     }
   };
 
+  if (isClosed && !canReopen) {
+    return (
+      <p className="max-w-[11rem] text-right text-xs text-muted">
+        Closed by the other person. Only they can reopen this chat.
+      </p>
+    );
+  }
+
   return (
     <div className="flex flex-col items-end gap-1">
       <Button
@@ -73,11 +85,7 @@ export function CloseConversationButton({
         disabled={busy}
         onClick={() => void onToggle()}
       >
-        {busy
-          ? "…"
-          : isClosed
-            ? "Reopen chat"
-            : "Close chat"}
+        {busy ? "…" : isClosed ? "Reopen chat" : "Close chat"}
       </Button>
       {error ? (
         <p className="text-xs text-danger" role="alert">
