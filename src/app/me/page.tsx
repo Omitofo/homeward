@@ -10,6 +10,10 @@ import {
   SavedAnimalsGrid,
 } from "@/features/engagement";
 import { postsRepository } from "@/features/posts";
+import {
+  getMyShelterApplication,
+  ShelterApplicationStatusCard,
+} from "@/features/shelter-applications";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -18,19 +22,30 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MePage() {
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function MePage({ searchParams }: Props) {
   const profile = await getCurrentProfile();
   if (!profile) {
     redirect("/login?next=/me");
   }
 
+  const params = await searchParams;
+  const appliedRaw = params.applied;
+  const justAppliedShelter =
+    appliedRaw === "shelter" ||
+    (Array.isArray(appliedRaw) && appliedRaw.includes("shelter"));
+
   const isAdmin = profile.role === "admin";
   const isShelter = profile.role === "shelter" || isAdmin;
 
-  const [saved, savedAnimals, mockPage] = await Promise.all([
+  const [saved, savedAnimals, mockPage, shelterApplication] = await Promise.all([
     listSavedSearches(),
     isShelter ? Promise.resolve([]) : listSavedAnimals(),
     postsRepository.list({ limit: 48 }),
+    isShelter ? Promise.resolve(null) : getMyShelterApplication(),
   ]);
 
   const mockCandidates = mockPage.items;
@@ -66,9 +81,24 @@ export default async function MePage() {
           </div>
           <div>
             <dt className="text-muted">Role</dt>
-            <dd className="mt-0.5 font-medium capitalize">{profile.role}</dd>
+            <dd className="mt-0.5 flex flex-wrap items-center gap-2 font-medium capitalize">
+              <span>{profile.role}</span>
+              {shelterApplication?.status === "pending" ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-status-reserved/15 px-2.5 py-0.5 text-xs font-medium normal-case text-status-reserved">
+                  <span className="h-1.5 w-1.5 rounded-full bg-status-reserved" aria-hidden />
+                  Shelter pending
+                </span>
+              ) : null}
+            </dd>
           </div>
         </dl>
+
+        {shelterApplication ? (
+          <ShelterApplicationStatusCard
+            application={shelterApplication}
+            justApplied={justAppliedShelter}
+          />
+        ) : null}
 
         {isAdmin ? (
           <p className="mt-6">
@@ -111,6 +141,18 @@ export default async function MePage() {
               </h2>
               <SavedSearchesList initial={saved} userId={profile.id} />
             </section>
+
+            {!shelterApplication ? (
+              <p className="mt-8 text-sm text-muted">
+                Represent a rescue?{" "}
+                <Link
+                  href="/register/shelter"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Request shelter access
+                </Link>
+              </p>
+            ) : null}
           </>
         ) : (
           <section className="mt-10 space-y-3">
