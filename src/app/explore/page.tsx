@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { postsRepository } from "@/features/posts";
 import { parseFeedFilters, toDomainFilters } from "@/features/filters/schema";
 import { FilterBar } from "@/features/filters/FilterBar";
 import { FeedInfinite } from "@/features/feed/FeedInfinite";
-import { MotionToggle } from "@/motion/components/MotionToggle";
 import { getCurrentProfile } from "@/features/auth";
-import { MessagesNavLink } from "@/features/chat";
-import { AdminNavLink } from "@/features/admin";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -51,51 +48,9 @@ export default async function ExplorePage({ searchParams }: Props) {
     Boolean(parsed.q) ||
     Boolean(parsed.country);
 
-  const isAdmin = profile?.role === "admin";
-  const isShelter = profile?.role === "shelter";
-
   return (
     <div className="min-h-full">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
-              Homeward
-            </Link>
-            <span className="hidden text-sm text-muted sm:inline">Explore</span>
-          </div>
-          <div className="flex items-center gap-3">
-            {isAdmin ? <AdminNavLink /> : null}
-            {isShelter ? (
-              <Link
-                href="/studio"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Studio
-              </Link>
-            ) : null}
-            {profile ? (
-              <>
-                <MessagesNavLink />
-                <Link
-                  href="/me"
-                  className="text-sm font-medium text-muted hover:text-foreground"
-                >
-                  {profile.displayName}
-                </Link>
-              </>
-            ) : (
-              <Link
-                href="/login?next=/explore"
-                className="text-sm font-medium text-muted hover:text-foreground"
-              >
-                Sign in
-              </Link>
-            )}
-            <MotionToggle />
-          </div>
-        </div>
-      </header>
+      <AppHeader profile={profile} active="explore" loginNext="/explore" />
 
       <main id="main-content" className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6 space-y-4">

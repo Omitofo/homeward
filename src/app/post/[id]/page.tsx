@@ -12,9 +12,7 @@ import {
   listComments,
   CommentSection,
 } from "@/features/engagement";
-import { MessagesNavLink } from "@/features/chat";
-import { AdminNavLink } from "@/features/admin";
-import { MotionToggle } from "@/motion/components/MotionToggle";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
 
@@ -108,8 +106,6 @@ export default async function PostDetailPage({ params }: Props) {
   }
 
   const signedIn = profile !== null;
-  const isAdmin = profile?.role === "admin";
-  const isShelter = profile?.role === "shelter";
   const [initialLiked, initialSaved, initialComments] = await Promise.all([
     signedIn ? getLikedByMe(post.id) : Promise.resolve(false),
     signedIn ? getSavedByMe(post.id) : Promise.resolve(false),
@@ -122,52 +118,11 @@ export default async function PostDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-full">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/explore"
-              className="text-sm font-medium text-muted hover:text-foreground"
-            >
-              ← Explore
-            </Link>
-            <span className="hidden text-border sm:inline">|</span>
-            <Link href="/" className="hidden text-lg font-semibold tracking-tight sm:inline">
-              Homeward
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
-            {isAdmin ? <AdminNavLink /> : null}
-            {isShelter ? (
-              <Link
-                href="/studio"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Studio
-              </Link>
-            ) : null}
-            {profile ? (
-              <>
-                <MessagesNavLink />
-                <Link
-                  href="/me"
-                  className="text-sm font-medium text-muted hover:text-foreground"
-                >
-                  {profile.displayName}
-                </Link>
-              </>
-            ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(`/post/${post.id}`)}`}
-                className="text-sm font-medium text-muted hover:text-foreground"
-              >
-                Sign in
-              </Link>
-            )}
-            <MotionToggle />
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        profile={profile}
+        maxWidthClassName="max-w-5xl"
+        loginNext={`/post/${post.id}`}
+      />
 
       <main id="main-content" className="mx-auto max-w-5xl px-4 py-6">
         <div className="mb-6">

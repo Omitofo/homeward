@@ -45,7 +45,19 @@ export async function StudioNav({
           )}
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/explore"
+            className="text-sm font-medium text-muted hover:text-foreground"
+          >
+            Explore
+          </Link>
           <MessagesNavLink />
+          <Link
+            href="/me"
+            className="text-sm font-medium text-muted hover:text-foreground"
+          >
+            Account
+          </Link>
           <SignOutButton />
         </div>
       </div>

@@ -78,10 +78,6 @@ export default async function StudioPage() {
           <Link href={`/shelter/${shelter.handle}`} className="hover:underline">
             View public profile
           </Link>
-          {" · "}
-          <Link href="/explore" className="hover:underline">
-            Explore
-          </Link>
         </p>
       </main>
     </>
