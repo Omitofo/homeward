@@ -6,6 +6,7 @@ import {
   getConversationMessages,
   ChatThread,
   CloseConversationButton,
+  HideConversationButton,
 } from "@/features/chat";
 import { AppHeader } from "@/components/layout/AppHeader";
 
@@ -53,7 +54,6 @@ export default async function ConversationPage({ params }: Props) {
     status === "closed" &&
     (closedBy === profile.id ||
       profile.role === "admin" ||
-      // Legacy closed threads with no closed_by: either participant may reopen
       closedBy == null);
 
   return (
@@ -70,7 +70,7 @@ export default async function ConversationPage({ params }: Props) {
         className="mx-auto flex min-h-[70vh] max-w-2xl flex-col px-4 py-6"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm">
               <Link
                 href="/messages"
@@ -90,11 +90,14 @@ export default async function ConversationPage({ params }: Props) {
                 : "Private thread. Never send money before meeting in person."}
             </p>
           </div>
-          <CloseConversationButton
-            conversationId={id}
-            status={status}
-            canReopen={canReopen}
-          />
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <CloseConversationButton
+              conversationId={id}
+              status={status}
+              canReopen={canReopen}
+            />
+            <HideConversationButton conversationId={id} status={status} />
+          </div>
         </div>
 
         <div

@@ -5,6 +5,7 @@ export {
   sendMessage,
   closeConversation,
   reopenConversation,
+  hideConversationForMe,
   getUnreadMessageCount,
 } from "./actions";
 export { startVerificationSupportChat } from "./support-actions";
@@ -14,6 +15,7 @@ export { ChatThread } from "./ChatThread";
 export { AnimalChatCard } from "./AnimalChatCard";
 export { MessagesNavLink } from "./MessagesNavLink";
 export { CloseConversationButton } from "./CloseConversationButton";
+export { HideConversationButton } from "./HideConversationButton";
 export { MessageAdminButton } from "./MessageAdminButton";
 export type {
   ConversationSummary,

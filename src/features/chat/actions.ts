@@ -23,9 +23,11 @@ import {
   closeMockConversation,
   findMockConversation,
   getMockConversation,
+  hideMockConversation,
   listMockConversationsForUser,
   reopenMockConversation,
   totalMockUnreadForUser,
+  unhideMockConversationForPeer,
   upsertMockConversation,
 } from "./mock-store";
 
@@ -102,7 +104,14 @@ export async function getUnreadMessageCount(): Promise<number> {
 
   if (convError || !convs?.length) return 0;
 
-  const ids = convs.map((c) => c.id);
+  const { data: hides } = await supabase
+    .from("conversation_hides")
+    .select("conversation_id")
+    .eq("user_id", profile.id);
+  const hiddenIds = new Set((hides ?? []).map((h) => h.conversation_id as string));
+  const ids = convs.map((c) => c.id).filter((id) => !hiddenIds.has(id));
+  if (ids.length === 0) return 0;
+
   const { count, error } = await supabase
     .from("messages")
     .select("id", { count: "exact", head: true })
@@ -149,8 +158,16 @@ export async function listConversations(): Promise<
     return { ok: false, error: "Could not load conversations" };
   }
 
+  const { data: hides } = await supabase
+    .from("conversation_hides")
+    .select("conversation_id")
+    .eq("user_id", profile.id);
+  const hiddenIds = new Set((hides ?? []).map((h) => h.conversation_id as string));
+
+  const visible = (data ?? []).filter((row) => !hiddenIds.has(row.id));
+
   const items: ConversationSummary[] = await Promise.all(
-    (data ?? []).map(async (row) => {
+    visible.map(async (row) => {
       const peerId =
         row.adopter_id === profile.id
           ? row.shelter_profile_id
@@ -492,6 +509,7 @@ export async function sendMessage(
       readAt: null,
     };
     appendMockMessage(conversationId, msg, body.slice(0, 120));
+    unhideMockConversationForPeer(conversationId, profile.id);
     revalidatePath(`/messages/${conversationId}`);
     revalidatePath("/messages");
     return {
@@ -538,6 +556,16 @@ export async function sendMessage(
     console.error("[sendMessage]", error?.message);
     return { ok: false, error: "Could not send message" };
   }
+
+  const peerId =
+    conv.adopter_id === profile.id
+      ? conv.shelter_profile_id
+      : conv.adopter_id;
+  await supabase
+    .from("conversation_hides")
+    .delete()
+    .eq("conversation_id", conversationId)
+    .eq("user_id", peerId);
 
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
@@ -664,7 +692,7 @@ export async function reopenConversation(
     const allowed =
       profile.role === "admin" ||
       closer === profile.id ||
-      closer == null; // legacy rows without closed_by
+      closer == null;
     if (!allowed) {
       return {
         ok: false,
@@ -690,5 +718,74 @@ export async function reopenConversation(
 
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
+  return { ok: true, data: { id: conversationId } };
+}
+
+/**
+ * Remove a conversation from the current user's inbox only (soft hide).
+ * Does not delete messages for the other participant.
+ * Optionally close the shared thread first.
+ */
+export async function hideConversationForMe(
+  conversationId: string,
+  options?: { alsoClose?: boolean },
+): Promise<ActionResult<{ id: string }>> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Sign in required" };
+
+  if (options?.alsoClose) {
+    const closed = await closeConversation({
+      conversationId,
+      reason: "Closed when removing from inbox",
+    });
+    if (!closed.ok) return closed;
+  }
+
+  if (useMock) {
+    const ok = hideMockConversation(conversationId, profile.id);
+    if (!ok) return { ok: false, error: "Conversation not found" };
+    revalidatePath("/messages");
+    revalidatePath(`/messages/${conversationId}`);
+    return { ok: true, data: { id: conversationId } };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("id, adopter_id, shelter_profile_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+
+  if (!conv) return { ok: false, error: "Conversation not found" };
+  if (
+    conv.adopter_id !== profile.id &&
+    conv.shelter_profile_id !== profile.id &&
+    profile.role !== "admin"
+  ) {
+    return { ok: false, error: "Access denied" };
+  }
+
+  const { error } = await supabase.from("conversation_hides").upsert(
+    {
+      user_id: profile.id,
+      conversation_id: conversationId,
+      hidden_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,conversation_id" },
+  );
+
+  if (error) {
+    console.error("[hideConversationForMe]", error.message);
+    return {
+      ok: false,
+      error:
+        "Could not remove from inbox. Run migration 20260926180000 if needed.",
+    };
+  }
+
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${conversationId}`);
   return { ok: true, data: { id: conversationId } };
 }
