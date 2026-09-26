@@ -200,6 +200,7 @@ export async function getConversationMessages(
     peerName: string;
     postId: string | null;
     status: ConversationStatus;
+    closedBy: string | null;
     postCards: Record<string, ChatPostCard>;
   }>
 > {
@@ -217,6 +218,7 @@ export async function getConversationMessages(
         peerName: c.peerName,
         postId: c.postId,
         status: c.status ?? "open",
+        closedBy: c.closedBy ?? null,
         postCards,
       },
     };
@@ -227,7 +229,7 @@ export async function getConversationMessages(
 
   const { data: conv, error: convError } = await supabase
     .from("conversations")
-    .select("id, adopter_id, shelter_profile_id, post_id, status")
+    .select("id, adopter_id, shelter_profile_id, post_id, status, closed_by")
     .eq("id", conversationId)
     .maybeSingle();
 
@@ -287,6 +289,7 @@ export async function getConversationMessages(
       peerName: peer?.display_name ?? "Member",
       postId: conv.post_id,
       status: (conv.status as ConversationStatus) ?? "open",
+      closedBy: (conv.closed_by as string | null) ?? null,
       messages,
       postCards,
     },
@@ -337,7 +340,6 @@ export async function startConversation(
     return { ok: false, error: "Cannot message yourself" };
   }
 
-  // Default intro for shelter-to-shelter when none provided
   const body =
     initialMessage ??
     (profile.role === "shelter"
@@ -394,7 +396,6 @@ export async function startConversation(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
 
-  // Pair key: initiator (adopter_id) + target shelter (shelter_profile_id)
   const { data: existing } = await supabase
     .from("conversations")
     .select("id, status")
@@ -438,7 +439,6 @@ export async function startConversation(
     });
     if (msgError) {
       console.error("[startConversation] message", msgError.message);
-      // Conversation exists; still return id so user can open thread
     }
   }
 
@@ -626,7 +626,7 @@ export async function closeConversation(
   return { ok: true, data: { id: conversationId } };
 }
 
-/** Re-open a closed conversation (either participant). */
+/** Re-open a closed conversation — only the user who closed it (or admin). */
 export async function reopenConversation(
   conversationId: string,
 ): Promise<ActionResult<{ id: string }>> {
@@ -634,8 +634,8 @@ export async function reopenConversation(
   if (!profile) return { ok: false, error: "Sign in required" };
 
   if (useMock) {
-    const ok = reopenMockConversation(conversationId, profile.id);
-    if (!ok) return { ok: false, error: "Conversation not found" };
+    const result = reopenMockConversation(conversationId, profile.id);
+    if (!result.ok) return { ok: false, error: result.error };
     revalidatePath(`/messages/${conversationId}`);
     revalidatePath("/messages");
     return { ok: true, data: { id: conversationId } };
@@ -646,7 +646,7 @@ export async function reopenConversation(
 
   const { data: conv } = await supabase
     .from("conversations")
-    .select("id, adopter_id, shelter_profile_id")
+    .select("id, adopter_id, shelter_profile_id, status, closed_by")
     .eq("id", conversationId)
     .maybeSingle();
 
@@ -657,6 +657,20 @@ export async function reopenConversation(
     profile.role !== "admin"
   ) {
     return { ok: false, error: "Access denied" };
+  }
+
+  if (conv.status === "closed") {
+    const closer = conv.closed_by as string | null;
+    const allowed =
+      profile.role === "admin" ||
+      closer === profile.id ||
+      closer == null; // legacy rows without closed_by
+    if (!allowed) {
+      return {
+        ok: false,
+        error: "Only the person who closed this chat can reopen it.",
+      };
+    }
   }
 
   const { error } = await supabase
