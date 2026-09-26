@@ -21,6 +21,8 @@ type Props = {
   role?: Role | null;
   /** public.shelters.id */
   shelterId?: string | null;
+  /** Owning shelter profile id — hide contact on your own posts */
+  shelterProfileId?: string | null;
   /** Animal display name for chat intro context */
   animalName?: string;
   shareTitle: string;
@@ -38,6 +40,7 @@ export function PostActions({
   userId,
   role,
   shelterId,
+  shelterProfileId,
   animalName,
   shareTitle,
   shareUrl,
@@ -47,9 +50,23 @@ export function PostActions({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [intent, setIntent] = useState<AuthIntent | null>(null);
 
-  const canLike = role !== "shelter";
-  const canSave = role !== "shelter";
-  const canStartChat = role !== "shelter";
+  const isOwnShelterPost =
+    Boolean(userId) && Boolean(shelterProfileId) && userId === shelterProfileId;
+
+  // Adopters + other shelters can start chat; not on your own listing
+  const canStartChat = !isOwnShelterPost;
+  const contactLabel =
+    role === "shelter"
+      ? status === "available"
+        ? "Message rescue"
+        : status === "reserved"
+          ? "Currently reserved"
+          : "Already adopted"
+      : status === "available"
+        ? "Contact shelter"
+        : status === "reserved"
+          ? "Currently reserved"
+          : "Already adopted";
 
   return (
     <>
@@ -62,23 +79,17 @@ export function PostActions({
               animalName={animalName}
               signedIn={signedIn}
               disabled={status !== "available"}
-              label={
-                status === "available"
-                  ? "Contact shelter"
-                  : status === "reserved"
-                    ? "Currently reserved"
-                    : "Already adopted"
-              }
+              label={contactLabel}
             />
           ) : (
             <Button size="lg" disabled>
-              {status === "available"
-                ? role === "shelter"
-                  ? "Shelters reply in Messages"
-                  : "Contact shelter"
-                : status === "reserved"
-                  ? "Currently reserved"
-                  : "Already adopted"}
+              {isOwnShelterPost
+                ? "Your listing"
+                : status === "available"
+                  ? "Contact shelter"
+                  : status === "reserved"
+                    ? "Currently reserved"
+                    : "Already adopted"}
             </Button>
           )}
 
@@ -88,7 +99,7 @@ export function PostActions({
             initialLiked={initialLiked}
             signedIn={signedIn}
             userId={userId}
-            canLike={canLike}
+            canLike
             size="lg"
           />
 
@@ -97,7 +108,7 @@ export function PostActions({
             initialSaved={initialSaved}
             signedIn={signedIn}
             userId={userId}
-            canSave={canSave}
+            canSave
             size="lg"
           />
 

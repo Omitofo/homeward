@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { ChatMessage, ChatPostCard } from "./schema";
+import type { ChatMessage, ChatPostCard, ConversationStatus } from "./schema";
 import {
   displayMessageBody,
   extractPostIdsFromBody,
@@ -18,6 +18,7 @@ type Props = {
   peerName?: string;
   /** Post cards keyed by post id (from message markers) */
   postCards?: Record<string, ChatPostCard>;
+  status?: ConversationStatus;
 };
 
 export function ChatThread({
@@ -26,10 +27,12 @@ export function ChatThread({
   currentUserId,
   peerName = "them",
   postCards = {},
+  status = "open",
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const closed = status === "closed";
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -153,7 +156,16 @@ export function ChatThread({
         <div ref={bottomRef} />
       </ul>
 
-      <MessageComposer conversationId={conversationId} onSent={onSent} />
+      {closed ? (
+        <div
+          className="border-t border-border pt-4 text-center text-sm text-muted"
+          role="status"
+        >
+          This conversation is closed. New messages are disabled.
+        </div>
+      ) : (
+        <MessageComposer conversationId={conversationId} onSent={onSent} />
+      )}
     </div>
   );
 }
