@@ -21,6 +21,23 @@ type Props = {
   status?: ConversationStatus;
 };
 
+/**
+ * Locale-stable timestamp so SSR and client HTML match (avoids hydration mismatch).
+ * Uses fixed en-GB options rather than the host default locale.
+ */
+function formatMessageTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
 export function ChatThread({
   conversationId,
   initialMessages,
@@ -139,7 +156,7 @@ export function ChatThread({
                     }
                     dateTime={m.createdAt}
                   >
-                    {new Date(m.createdAt).toLocaleString()}
+                    {formatMessageTime(m.createdAt)}
                   </time>
                 </div>
               ) : null}
