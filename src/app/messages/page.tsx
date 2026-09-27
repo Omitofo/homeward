@@ -33,8 +33,8 @@ export default async function MessagesPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
         <p className="mt-1 text-sm text-muted">
           {profile.role === "shelter"
-            ? "Chats with adopters and other rescues. Close a thread if you need to stop messages."
-            : "Private chats with rescues. Never send money before meeting the animal."}
+            ? "Chats with adopters and other rescues. Archive to clear your inbox; block to stop messages."
+            : "Private chats with rescues. Archive hides a thread from your inbox; block stops messaging."}
         </p>
 
         {!result.ok ? (
@@ -70,9 +70,9 @@ export default async function MessagesPage() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium">
                       {c.peerName}
-                      {c.status === "closed" ? (
+                      {c.blockedByMe ? (
                         <span className="ml-2 text-xs font-normal text-muted">
-                          · Closed
+                          · Blocked
                         </span>
                       ) : null}
                     </span>

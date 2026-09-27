@@ -3,9 +3,10 @@ export {
   getConversationMessages,
   startConversation,
   sendMessage,
-  closeConversation,
-  reopenConversation,
+  archiveConversation,
   hideConversationForMe,
+  blockPeer,
+  unblockPeer,
   getUnreadMessageCount,
 } from "./actions";
 export { startVerificationSupportChat } from "./support-actions";
@@ -14,7 +15,7 @@ export { StartChatButton } from "./StartChatButton";
 export { ChatThread } from "./ChatThread";
 export { AnimalChatCard } from "./AnimalChatCard";
 export { MessagesNavLink } from "./MessagesNavLink";
-export { CloseConversationButton } from "./CloseConversationButton";
+export { BlockConversationButton } from "./BlockConversationButton";
 export { HideConversationButton } from "./HideConversationButton";
 export { MessageAdminButton } from "./MessageAdminButton";
 export type {

@@ -3,34 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
-import { hideConversationForMe } from "./actions";
-import type { ConversationStatus } from "./schema";
+import { archiveConversation } from "./actions";
 
 type Props = {
   conversationId: string;
-  status: ConversationStatus;
 };
 
-export function HideConversationButton({
-  conversationId,
-  status,
-}: Props) {
+/**
+ * Archive = hide from my inbox only. History stays on the server for both sides.
+ * Peer messaging un-archives for me (WhatsApp-style).
+ */
+export function HideConversationButton({ conversationId }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const removeOnly = async () => {
+  const onArchive = async () => {
     const confirmed = window.confirm(
-      "Remove this chat from your inbox? The other person still has their copy. This does not delete messages for them.",
+      "Archive this chat? It leaves your inbox but stays on the server. The other person keeps their full history. If they message you again, it will reappear.",
     );
     if (!confirmed) return;
 
     setBusy(true);
     setError(null);
     try {
-      const result = await hideConversationForMe(conversationId, {
-        alsoClose: false,
-      });
+      const result = await archiveConversation(conversationId);
       if (!result.ok) {
         setError(result.error);
         return;
@@ -38,32 +35,7 @@ export function HideConversationButton({
       router.push("/messages");
       router.refresh();
     } catch {
-      setError("Could not remove chat");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const closeAndRemove = async () => {
-    const confirmed = window.confirm(
-      "Close this chat and remove it from your inbox? Neither of you can send new messages until you reopen it. The other person still keeps their history.",
-    );
-    if (!confirmed) return;
-
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await hideConversationForMe(conversationId, {
-        alsoClose: true,
-      });
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      router.push("/messages");
-      router.refresh();
-    } catch {
-      setError("Could not close and remove");
+      setError("Could not archive chat");
     } finally {
       setBusy(false);
     }
@@ -71,29 +43,15 @@ export function HideConversationButton({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <div className="flex flex-wrap justify-end gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={busy}
-          onClick={() => void removeOnly()}
-        >
-          {busy ? "…" : "Remove from inbox"}
-        </Button>
-        {status === "open" ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={busy}
-            onClick={() => void closeAndRemove()}
-            className="text-danger hover:text-danger"
-          >
-            Close & remove
-          </Button>
-        ) : null}
-      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={busy}
+        onClick={() => void onArchive()}
+      >
+        {busy ? "…" : "Archive"}
+      </Button>
       {error ? (
         <p className="max-w-[14rem] text-right text-xs text-danger" role="alert">
           {error}

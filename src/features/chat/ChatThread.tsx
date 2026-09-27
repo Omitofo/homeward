@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { ChatMessage, ChatPostCard, ConversationStatus } from "./schema";
+import type { ChatMessage, ChatPostCard } from "./schema";
 import {
   displayMessageBody,
   extractPostIdsFromBody,
@@ -14,17 +14,12 @@ type Props = {
   conversationId: string;
   initialMessages: ChatMessage[];
   currentUserId: string;
-  /** Display name of the other participant (for screen-reader labels) */
   peerName?: string;
-  /** Post cards keyed by post id (from message markers) */
   postCards?: Record<string, ChatPostCard>;
-  status?: ConversationStatus;
+  messagingBlocked?: boolean;
+  blockedByMe?: boolean;
 };
 
-/**
- * Locale-stable timestamp so SSR and client HTML match (avoids hydration mismatch).
- * Uses fixed en-GB options rather than the host default locale.
- */
 function formatMessageTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -44,12 +39,12 @@ export function ChatThread({
   currentUserId,
   peerName = "them",
   postCards = {},
-  status = "open",
+  messagingBlocked = false,
+  blockedByMe = false,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const closed = status === "closed";
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,7 +58,6 @@ export function ChatThread({
     scrollToBottom();
   }, [messages.length, scrollToBottom]);
 
-  // Supabase Realtime when configured; no-op in pure mock
   useEffect(() => {
     const supabase = createClient();
     if (!supabase) return;
@@ -173,12 +167,14 @@ export function ChatThread({
         <div ref={bottomRef} />
       </ul>
 
-      {closed ? (
+      {messagingBlocked ? (
         <div
           className="border-t border-border pt-4 text-center text-sm text-muted"
           role="status"
         >
-          This conversation is closed. New messages are disabled.
+          {blockedByMe
+            ? "You blocked this person. Unblock to send messages again. History is still here."
+            : "You can't message this person right now."}
         </div>
       ) : (
         <MessageComposer conversationId={conversationId} onSent={onSent} />

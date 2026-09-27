@@ -21,9 +21,8 @@ export const startConversationSchema = z.object({
     .optional(),
 });
 
-export const closeConversationSchema = z.object({
+export const blockPeerSchema = z.object({
   conversationId: z.string().min(1),
-  reason: z.string().trim().max(500).optional(),
 });
 
 export type ChatMessage = {
@@ -45,6 +44,7 @@ export type ChatPostCard = {
   imageAlt: string;
 };
 
+/** @deprecated mutual close removed — kept for type compatibility during transition */
 export type ConversationStatus = "open" | "closed";
 
 export type ConversationSummary = {
@@ -58,6 +58,8 @@ export type ConversationSummary = {
   peerName: string;
   lastMessagePreview: string | null;
   unreadCount: number;
+  /** True when current user has blocked the peer */
+  blockedByMe?: boolean;
 };
 
 /** Machine marker embedded in message body so we can show a card without a schema migration */
