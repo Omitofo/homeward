@@ -5,7 +5,7 @@ import { getCurrentProfile } from "@/features/auth";
 import {
   getConversationMessages,
   ChatThread,
-  CloseConversationButton,
+  BlockConversationButton,
   HideConversationButton,
 } from "@/features/chat";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -49,12 +49,14 @@ export default async function ConversationPage({ params }: Props) {
     );
   }
 
-  const { messages, peerName, postCards, status, closedBy } = result.data;
-  const canReopen =
-    status === "closed" &&
-    (closedBy === profile.id ||
-      profile.role === "admin" ||
-      closedBy == null);
+  const {
+    messages,
+    peerName,
+    postCards,
+    blockedByMe,
+    messagingBlocked,
+    peerIsAdmin,
+  } = result.data;
 
   return (
     <div className="min-h-full">
@@ -83,20 +85,21 @@ export default async function ConversationPage({ params }: Props) {
               {peerName}
             </h1>
             <p className="text-xs text-muted">
-              {status === "closed"
-                ? closedBy === profile.id
-                  ? "You closed this conversation"
-                  : "Conversation closed"
-                : "Private thread. Never send money before meeting in person."}
+              {blockedByMe
+                ? "You blocked this person. History is still here."
+                : messagingBlocked
+                  ? "Messaging is unavailable."
+                  : "Private thread. Never send money before meeting in person."}
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
-            <CloseConversationButton
+            <BlockConversationButton
               conversationId={id}
-              status={status}
-              canReopen={canReopen}
+              blockedByMe={blockedByMe}
+              messagingBlocked={messagingBlocked}
+              peerIsAdmin={peerIsAdmin}
             />
-            <HideConversationButton conversationId={id} status={status} />
+            <HideConversationButton conversationId={id} />
           </div>
         </div>
 
@@ -115,7 +118,8 @@ export default async function ConversationPage({ params }: Props) {
           currentUserId={profile.id}
           peerName={peerName}
           postCards={postCards}
-          status={status}
+          messagingBlocked={messagingBlocked}
+          blockedByMe={blockedByMe}
         />
       </main>
     </div>
