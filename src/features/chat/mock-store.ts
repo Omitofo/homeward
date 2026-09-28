@@ -104,7 +104,7 @@ export function unhideMockConversation(
   return true;
 }
 
-/** Clear hide for the peer when sender posts a new message. */
+/** Clear archive for peer when sender posts. */
 export function unhideMockConversationForPeer(
   conversationId: string,
   senderId: string,
@@ -114,6 +114,15 @@ export function unhideMockConversationForPeer(
   const peer =
     c.adopterId === senderId ? c.shelterProfileId : c.adopterId;
   c.hiddenFor.delete(peer);
+}
+
+/** Clear archive for both participants (activity restores inbox). */
+export function unhideMockConversationForBoth(
+  conversationId: string,
+) {
+  const c = store.get(conversationId);
+  if (!c || !c.hiddenFor) return;
+  c.hiddenFor.clear();
 }
 
 export function isMockBlocked(a: string, b: string): boolean {
