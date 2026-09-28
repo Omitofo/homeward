@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AnimalPost } from "@/types/domain";
-import { PostCard } from "@/features/feed/PostCard";
-import { hasLocalLike, readLocalLikes } from "@/features/engagement/likes/local-store";
+import {
+  hasLocalLike,
+  readLocalLikes,
+} from "@/features/engagement/likes/local-store";
+import { SavedAnimalThumb } from "./SavedAnimalThumb";
 
 type Props = {
   initial: AnimalPost[];
@@ -47,9 +50,9 @@ export function LikedAnimalsGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
       {items.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <SavedAnimalThumb key={post.id} post={post} />
       ))}
     </div>
   );

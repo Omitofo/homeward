@@ -121,28 +121,37 @@ export default async function PostDetailPage({ params }: Props) {
   const shareText = post.description.slice(0, 120);
 
   return (
-    <div className="min-h-full">
+    <div className="flex min-h-full flex-col">
       <AppHeader
         profile={profile}
         maxWidthClassName="max-w-5xl"
         loginNext={`/post/${post.id}`}
       />
 
-      <main id="main-content" className="mx-auto max-w-5xl px-4 py-6">
-        <div className="mb-4">
+      <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 px-4 py-4 lg:py-6">
+        <div className="mb-3 lg:mb-4">
           <IntentResume signedIn={signedIn} />
         </div>
 
         {/*
-          Desktop: two columns with equal height from the taller side.
-          Left media is sticky so it stays put while the right column scrolls.
+          Mobile: single column, natural page scroll.
+          Desktop: fixed viewport-height split — left media locked, right column scrolls alone.
         */}
-        <div className="grid items-start gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid-cols-2">
-          <div className="bg-secondary lg:sticky lg:top-20 lg:self-start">
-            <PostGallery media={post.media} name={post.name} />
+        <div
+          className={
+            "grid gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm " +
+            "lg:grid-cols-2 lg:h-[calc(100dvh-7.5rem)]"
+          }
+        >
+          {/* Left: no extra empty space; fills column height on desktop */}
+          <div className="bg-secondary lg:h-full lg:overflow-hidden lg:border-r lg:border-border">
+            <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
+              <PostGallery media={post.media} name={post.name} />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-5 p-5 sm:p-6">
+          {/* Right: independent scroll on desktop */}
+          <div className="flex flex-col gap-5 overflow-y-auto p-5 sm:p-6 lg:h-full">
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="flex items-center gap-3"
@@ -231,7 +240,7 @@ export default async function PostDetailPage({ params }: Props) {
               </p>
             </div>
 
-            <div className="border-t border-border pt-4">
+            <div className="border-t border-border pt-4 pb-2">
               <CommentSection
                 postId={post.id}
                 initialComments={initialComments}

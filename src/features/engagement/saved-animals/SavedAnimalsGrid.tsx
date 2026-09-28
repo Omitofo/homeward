@@ -3,21 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AnimalPost } from "@/types/domain";
-import { PostCard } from "@/features/feed/PostCard";
 import { hasLocalSave, readLocalSaves } from "./local-store";
+import { SavedAnimalThumb } from "./SavedAnimalThumb";
 
 type Props = {
   initial: AnimalPost[];
   userId: string;
-  /** All posts available in mock mode so we can resolve localStorage ids */
   mockCandidates?: AnimalPost[];
   emptyHint?: string;
 };
 
-/**
- * Server-rendered saved list + optional mock-mode merge from localStorage.
- * In real mode `initial` is authoritative.
- */
 export function SavedAnimalsGrid({
   initial,
   userId,
@@ -38,7 +33,6 @@ export function SavedAnimalsGrid({
         const found = mockCandidates.find((p) => p.id === id);
         if (found) byId.set(id, found);
       }
-      // Keep local-only order roughly: newest local first is not tracked; append
       return Array.from(byId.values());
     });
   }, [userId, mockCandidates]);
@@ -55,15 +49,14 @@ export function SavedAnimalsGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
       {items.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <SavedAnimalThumb key={post.id} post={post} />
       ))}
     </div>
   );
 }
 
-/** Re-export helper for liked mock hydration if needed later */
 export function filterLocalSaved(
   userId: string,
   candidates: AnimalPost[],
