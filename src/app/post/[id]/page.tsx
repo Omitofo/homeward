@@ -121,37 +121,47 @@ export default async function PostDetailPage({ params }: Props) {
   const shareText = post.description.slice(0, 120);
 
   return (
-    <div className="flex min-h-full flex-col">
+    /*
+      Mobile: natural page height + document scroll.
+      Desktop: lock to viewport height so only the right column scrolls
+      (no grey page scrollbar under the split container).
+    */
+    <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
       <AppHeader
         profile={profile}
         maxWidthClassName="max-w-5xl"
         loginNext={`/post/${post.id}`}
+        sticky={false}
+        className="shrink-0"
       />
 
-      <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 px-4 py-4 lg:py-6">
-        <div className="mb-3 lg:mb-4">
+      <main
+        id="main-content"
+        className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-4 lg:py-6"
+      >
+        <div className="mb-3 shrink-0 lg:mb-4">
           <IntentResume signedIn={signedIn} />
         </div>
 
         {/*
           Mobile: single column, natural page scroll.
-          Desktop: fixed viewport-height split — left media locked, right column scrolls alone.
+          Desktop: flex-1 split — left media locked, right column scrolls alone.
         */}
         <div
           className={
-            "grid gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm " +
-            "lg:grid-cols-2 lg:h-[calc(100dvh-7.5rem)]"
+            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm " +
+            "lg:grid-cols-2"
           }
         >
           {/* Left: no extra empty space; fills column height on desktop */}
-          <div className="bg-secondary lg:h-full lg:overflow-hidden lg:border-r lg:border-border">
+          <div className="bg-secondary lg:h-full lg:min-h-0 lg:overflow-hidden lg:border-r lg:border-border">
             <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
               <PostGallery media={post.media} name={post.name} />
             </div>
           </div>
 
-          {/* Right: independent scroll on desktop */}
-          <div className="flex flex-col gap-5 overflow-y-auto p-5 sm:p-6 lg:h-full">
+          {/* Right: independent scroll on desktop; themed scrollbar like filter sheet */}
+          <div className="sheet-scroll flex flex-col gap-5 overflow-y-auto p-5 sm:p-6 lg:min-h-0 lg:h-full">
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="flex items-center gap-3"
