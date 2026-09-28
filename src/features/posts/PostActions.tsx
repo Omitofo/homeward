@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
+import { MessageCircle } from "@/components/icons";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
 import { StartChatButton, UnblockPeerButton } from "@/features/chat";
@@ -19,11 +20,8 @@ type Props = {
   initialSaved?: boolean;
   userId?: string | null;
   role?: Role | null;
-  /** public.shelters.id */
   shelterId?: string | null;
-  /** Owning shelter profile id — hide contact on your own posts */
   shelterProfileId?: string | null;
-  /** Current user has blocked this shelter */
   blockedByMe?: boolean;
   animalName?: string;
   shareTitle: string;
@@ -71,14 +69,47 @@ export function PostActions({
 
   return (
     <>
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-start gap-3">
-          {blockedByMe && shelterProfileId ? (
-            <UnblockPeerButton
-              peerId={shelterProfileId}
-              size="lg"
-              showLabel
+      <div className="flex flex-col gap-4">
+        {/* Instagram-style engagement row */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1">
+            <LikeButton
+              postId={postId}
+              initialCount={likeCount}
+              initialLiked={initialLiked}
+              signedIn={signedIn}
+              userId={userId}
+              canLike
+              iconOnly
             />
+            <ShareButton
+              url={shareUrl}
+              title={shareTitle}
+              text={shareText}
+              iconOnly
+            />
+          </div>
+          <SaveButton
+            postId={postId}
+            initialSaved={initialSaved}
+            signedIn={signedIn}
+            userId={userId}
+            canSave
+            iconOnly
+          />
+        </div>
+
+        {likeCount > 0 ? (
+          <p className="text-sm font-semibold tabular-nums text-foreground">
+            {likeCount.toLocaleString("en-GB")}{" "}
+            {likeCount === 1 ? "like" : "likes"}
+          </p>
+        ) : null}
+
+        {/* Primary CTA */}
+        <div className="flex flex-wrap items-center gap-3">
+          {blockedByMe && shelterProfileId ? (
+            <UnblockPeerButton peerId={shelterProfileId} size="lg" showLabel />
           ) : shelterId && canStartChat ? (
             <StartChatButton
               shelterId={shelterId}
@@ -89,7 +120,8 @@ export function PostActions({
               label={contactLabel}
             />
           ) : (
-            <Button size="lg" disabled>
+            <Button size="lg" disabled className="gap-2">
+              <MessageCircle size={20} />
               {isOwnShelterPost
                 ? "Your listing"
                 : status === "available"
@@ -99,32 +131,6 @@ export function PostActions({
                     : "Already adopted"}
             </Button>
           )}
-
-          <LikeButton
-            postId={postId}
-            initialCount={likeCount}
-            initialLiked={initialLiked}
-            signedIn={signedIn}
-            userId={userId}
-            canLike
-            size="lg"
-          />
-
-          <SaveButton
-            postId={postId}
-            initialSaved={initialSaved}
-            signedIn={signedIn}
-            userId={userId}
-            canSave
-            size="lg"
-          />
-
-          <ShareButton
-            url={shareUrl}
-            title={shareTitle}
-            text={shareText}
-            size="lg"
-          />
         </div>
 
         <ReportButton
