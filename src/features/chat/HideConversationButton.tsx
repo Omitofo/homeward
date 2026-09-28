@@ -9,10 +9,7 @@ type Props = {
   conversationId: string;
 };
 
-/**
- * Archive = hide from my inbox only. History stays on the server for both sides.
- * Peer messaging un-archives for me (WhatsApp-style).
- */
+/** Archive = hide from my inbox only (icon + tooltip). */
 export function HideConversationButton({ conversationId }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -20,7 +17,7 @@ export function HideConversationButton({ conversationId }: Props) {
 
   const onArchive = async () => {
     const confirmed = window.confirm(
-      "Archive this chat? It leaves your inbox but stays on the server. The other person keeps their full history. If they message you again, it will reappear.",
+      "Archive this chat? It leaves your inbox. New messages will bring it back.",
     );
     if (!confirmed) return;
 
@@ -35,7 +32,7 @@ export function HideConversationButton({ conversationId }: Props) {
       router.push("/messages");
       router.refresh();
     } catch {
-      setError("Could not archive chat");
+      setError("Could not archive");
     } finally {
       setBusy(false);
     }
@@ -49,8 +46,17 @@ export function HideConversationButton({ conversationId }: Props) {
         size="sm"
         disabled={busy}
         onClick={() => void onArchive()}
+        title="Archive chat"
+        aria-label="Archive chat"
+        className="min-w-9 px-2"
       >
-        {busy ? "…" : "Archive"}
+        {busy ? (
+          "…"
+        ) : (
+          <span aria-hidden className="text-base leading-none">
+            ⬇
+          </span>
+        )}
       </Button>
       {error ? (
         <p className="max-w-[14rem] text-right text-xs text-danger" role="alert">

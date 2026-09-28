@@ -12,6 +12,7 @@ import {
   listComments,
   CommentSection,
 } from "@/features/engagement";
+import { getBlockStateForShelter } from "@/features/chat";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { siteConfig } from "@/config/site";
 import type { AnimalPost } from "@/types/domain";
@@ -39,7 +40,6 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/** Fixed locale so SSR matches (Listed line is server-rendered). */
 function formatListedDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString("en-GB", {
@@ -106,11 +106,15 @@ export default async function PostDetailPage({ params }: Props) {
   }
 
   const signedIn = profile !== null;
-  const [initialLiked, initialSaved, initialComments] = await Promise.all([
-    signedIn ? getLikedByMe(post.id) : Promise.resolve(false),
-    signedIn ? getSavedByMe(post.id) : Promise.resolve(false),
-    listComments(post.id),
-  ]);
+  const [initialLiked, initialSaved, initialComments, blockState] =
+    await Promise.all([
+      signedIn ? getLikedByMe(post.id) : Promise.resolve(false),
+      signedIn ? getSavedByMe(post.id) : Promise.resolve(false),
+      listComments(post.id),
+      signedIn
+        ? getBlockStateForShelter(post.shelter.id)
+        : Promise.resolve({ peerId: null, blockedByMe: false }),
+    ]);
 
   const shareUrl = `${siteConfig.url}/post/${post.id}`;
   const shareTitle = `${post.name} · ${post.breed}`;
@@ -200,6 +204,8 @@ export default async function PostDetailPage({ params }: Props) {
               userId={profile?.id}
               role={profile?.role}
               shelterId={post.shelter.id}
+              shelterProfileId={blockState.peerId}
+              blockedByMe={blockState.blockedByMe}
               animalName={post.name}
               shareTitle={shareTitle}
               shareUrl={shareUrl}
