@@ -122,11 +122,11 @@ export default async function PostDetailPage({ params }: Props) {
 
   return (
     /*
-      Mobile: natural page height + document scroll.
-      Desktop: lock shell to the viewport — header stays put, only the
-      right column of the post card scrolls. No empty page below the card.
+      Mobile: natural document scroll.
+      Desktop: fixed to the viewport — zero page scroll. Header + card
+      fit in 100dvh; only the right column scrolls inside the card.
     */
-    <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
+    <div className="flex min-h-full flex-col lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden">
       <AppHeader
         profile={profile}
         maxWidthClassName="max-w-3xl"
@@ -137,30 +137,30 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col px-3 py-2 lg:overflow-hidden lg:py-2.5"
+        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col px-3 py-2 lg:overflow-hidden lg:py-2"
       >
-        <div className="mb-1.5 shrink-0 lg:mb-2">
+        <div className="mb-1.5 shrink-0 lg:mb-1.5">
           <IntentResume signedIn={signedIn} />
         </div>
 
         {/*
           Mobile: single column, natural page scroll.
-          Desktop: flex-1 split — left media top-aligned (fixed height),
-          right column scrolls alone.
+          Desktop: fills remaining height under header; both columns
+          share that height; only the right pane scrolls.
         */}
         <div
           className={
             "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
-            "lg:grid-cols-2"
+            "lg:grid-cols-2 lg:grid-rows-1"
           }
         >
-          {/* Left: top-aligned gallery; secondary fill below image on tall screens */}
-          <div className="bg-secondary lg:min-h-0 lg:h-full lg:overflow-hidden lg:border-r lg:border-border">
+          {/* Left: image top-aligned; secondary fills rest of column */}
+          <div className="bg-secondary lg:min-h-0 lg:overflow-hidden lg:border-r lg:border-border">
             <PostGallery media={post.media} name={post.name} />
           </div>
 
-          {/* Right: independent scroll on desktop; themed scrollbar like filter sheet */}
-          <div className="sheet-scroll flex flex-col gap-3 overflow-y-auto p-3 sm:p-4 lg:min-h-0 lg:h-full">
+          {/* Right: only scroll surface on desktop */}
+          <div className="sheet-scroll flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:h-full">
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="flex items-center gap-2"
