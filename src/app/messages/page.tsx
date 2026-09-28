@@ -3,7 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState, EmptyStateLink } from "@/components/ui";
 import { getCurrentProfile } from "@/features/auth";
-import { listConversations } from "@/features/chat";
+import {
+  listConversations,
+  listBlockedPeers,
+  UnblockPeerButton,
+  type MessagesTab,
+} from "@/features/chat";
 import { AppHeader } from "@/components/layout/AppHeader";
 
 export const metadata: Metadata = {
@@ -11,14 +16,39 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MessagesPage() {
+type Props = {
+  searchParams: Promise<{ tab?: string }>;
+};
+
+function parseTab(raw: string | undefined): MessagesTab {
+  if (raw === "archived" || raw === "blocked") return raw;
+  return "inbox";
+}
+
+export default async function MessagesPage({ searchParams }: Props) {
   const profile = await getCurrentProfile();
   if (!profile) {
     redirect("/login?next=/messages");
   }
 
-  const result = await listConversations();
-  const items = result.ok ? result.data : [];
+  const params = await searchParams;
+  const tab = parseTab(params.tab);
+
+  const convResult =
+    tab === "blocked"
+      ? { ok: true as const, data: [] }
+      : await listConversations(tab);
+  const blockedResult =
+    tab === "blocked" ? await listBlockedPeers() : { ok: true as const, data: [] };
+
+  const items = convResult.ok ? convResult.data : [];
+  const blocked = blockedResult.ok ? blockedResult.data : [];
+
+  const tabs: { id: MessagesTab; label: string }[] = [
+    { id: "inbox", label: "Inbox" },
+    { id: "archived", label: "Archived" },
+    { id: "blocked", label: "Blocked" },
+  ];
 
   return (
     <div className="min-h-full">
@@ -32,34 +62,107 @@ export default async function MessagesPage() {
       <main id="main-content" className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
         <p className="mt-1 text-sm text-muted">
-          {profile.role === "shelter"
-            ? "Chats with adopters and other rescues. Archive to clear your inbox; block to stop messages."
-            : "Private chats with rescues. Archive hides a thread from your inbox; block stops messaging."}
+          Archive hides a chat from Inbox only. Block stops messaging — manage
+          that under Blocked.
         </p>
 
-        {!result.ok ? (
+        <nav
+          className="mt-6 flex gap-1 border-b border-border"
+          aria-label="Message folders"
+        >
+          {tabs.map((t) => {
+            const active = tab === t.id;
+            const href =
+              t.id === "inbox" ? "/messages" : `/messages?tab=${t.id}`;
+            return (
+              <Link
+                key={t.id}
+                href={href}
+                className={
+                  active
+                    ? "-mb-px border-b-2 border-primary px-3 py-2 text-sm font-medium text-foreground"
+                    : "px-3 py-2 text-sm text-muted hover:text-foreground"
+                }
+                aria-current={active ? "page" : undefined}
+              >
+                {t.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {!convResult.ok ? (
           <p className="mt-8 text-sm text-danger" role="alert">
-            {result.error}
+            {convResult.error}
+          </p>
+        ) : null}
+        {tab === "blocked" && !blockedResult.ok ? (
+          <p className="mt-8 text-sm text-danger" role="alert">
+            {blockedResult.error}
           </p>
         ) : null}
 
-        {result.ok && items.length === 0 ? (
+        {tab === "blocked" ? (
+          blocked.length === 0 ? (
+            <div className="mt-10">
+              <EmptyState
+                title="No blocked people"
+                description="When you block someone, they appear here so you can unblock anytime — even if the chat was archived."
+              />
+            </div>
+          ) : (
+            <ul className="mt-8 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+              {blocked.map((b) => (
+                <li
+                  key={b.peerId}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">{b.peerName}</p>
+                    <p className="text-xs text-muted">
+                      Blocked{" "}
+                      {new Date(b.blockedAt).toLocaleDateString("en-GB")}
+                      {b.conversationId ? (
+                        <>
+                          {" · "}
+                          <Link
+                            href={`/messages/${b.conversationId}`}
+                            className="underline hover:text-foreground"
+                          >
+                            Open chat
+                          </Link>
+                        </>
+                      ) : null}
+                    </p>
+                  </div>
+                  <UnblockPeerButton peerId={b.peerId} />
+                </li>
+              ))}
+            </ul>
+          )
+        ) : items.length === 0 ? (
           <div className="mt-10">
             <EmptyState
-              title="No conversations yet"
+              title={
+                tab === "archived"
+                  ? "No archived chats"
+                  : "No conversations yet"
+              }
               description={
-                profile.role === "shelter"
-                  ? "Adopters contact you from a post. You can also message another rescue from their profile."
-                  : "Open a post and tap Contact shelter to start a chat."
+                tab === "archived"
+                  ? "Archive a chat from the thread to move it here. New messages bring it back to Inbox."
+                  : profile.role === "shelter"
+                    ? "Adopters contact you from a post. You can also message another rescue from their profile."
+                    : "Open a post and tap Contact shelter to start a chat."
               }
               action={
-                <EmptyStateLink href="/explore">Browse animals</EmptyStateLink>
+                tab === "inbox" ? (
+                  <EmptyStateLink href="/explore">Browse animals</EmptyStateLink>
+                ) : undefined
               }
             />
           </div>
-        ) : null}
-
-        {items.length > 0 ? (
+        ) : (
           <ul className="mt-8 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
             {items.map((c) => (
               <li key={c.id}>
@@ -89,7 +192,7 @@ export default async function MessagesPage() {
               </li>
             ))}
           </ul>
-        ) : null}
+        )}
       </main>
     </div>
   );
