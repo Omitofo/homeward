@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { Unlock } from "@/components/icons";
 import { unblockPeerById } from "./actions";
 
 type Props = {
   peerId: string;
-  /** larger control on post pages */
-  size?: "sm" | "lg";
-  /** show text label next to icon */
+  size?: "sm" | "md" | "lg" | "icon";
   showLabel?: boolean;
 };
 
@@ -44,7 +43,7 @@ export function UnblockPeerButton({
       <Button
         type="button"
         variant="secondary"
-        size={size}
+        size={showLabel ? size : "icon"}
         disabled={busy}
         onClick={() => void onUnblock()}
         title="Unblock user"
@@ -53,10 +52,8 @@ export function UnblockPeerButton({
         {busy ? (
           "…"
         ) : (
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden className="text-base leading-none">
-              ⊘
-            </span>
+          <span className="inline-flex items-center gap-2">
+            <Unlock size={20} />
             {showLabel ? <span>Unblock</span> : null}
           </span>
         )}

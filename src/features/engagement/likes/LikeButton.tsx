@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
+import { Heart, HeartSolid } from "@/components/icons";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
 import { useMotionPreference } from "@/motion/hooks/useMotionPreference";
@@ -13,14 +14,13 @@ import { playLikeBurst } from "./like-burst";
 type Props = {
   postId: string;
   initialCount: number;
-  /** Server-known like state (real mode). Mock mode hydrates from localStorage. */
   initialLiked?: boolean;
   signedIn: boolean;
-  /** Profile id for mock localStorage key; omit when signed out */
   userId?: string | null;
-  /** Shelter role cannot like */
   canLike?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "icon";
+  /** Instagram-style: icon only, count shown elsewhere */
+  iconOnly?: boolean;
 };
 
 export function LikeButton({
@@ -30,7 +30,8 @@ export function LikeButton({
   signedIn,
   userId,
   canLike = true,
-  size = "lg",
+  size = "icon",
+  iconOnly = true,
 }: Props) {
   const pathname = usePathname();
   const { enabled: motionEnabled } = useMotionPreference();
@@ -42,7 +43,6 @@ export function LikeButton({
   const [intent, setIntent] = useState<AuthIntent | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // Hydrate mock-mode likes from localStorage after mount
   useEffect(() => {
     if (!signedIn || !userId) return;
     if (initialLiked) return;
@@ -78,7 +78,6 @@ export function LikeButton({
     const nextLiked = !liked;
     const nextCount = Math.max(0, count + (nextLiked ? 1 : -1));
 
-    // Optimistic
     setLiked(nextLiked);
     setCount(nextCount);
     if (nextLiked && motionEnabled) {
@@ -105,18 +104,24 @@ export function LikeButton({
     <div className="flex flex-col gap-1">
       <Button
         type="button"
-        variant={liked ? "primary" : "secondary"}
-        size={size}
+        variant="ghost"
+        size={iconOnly ? "icon" : size}
         disabled={pending}
         onClick={onClick}
         aria-pressed={liked}
         aria-label={liked ? "Unlike" : "Like"}
+        title={liked ? "Unlike" : "Like"}
+        className={liked ? "text-danger hover:text-danger" : undefined}
       >
-        <span ref={iconRef} aria-hidden className="inline-block">
-          {liked ? "♥" : "♡"}
+        <span ref={iconRef} className="inline-flex">
+          {liked ? <HeartSolid size={24} /> : <Heart size={24} />}
         </span>
-        <span>{liked ? "Liked" : "Like"}</span>
-        <span className="tabular-nums opacity-80">{count}</span>
+        {!iconOnly ? (
+          <>
+            <span>{liked ? "Liked" : "Like"}</span>
+            <span className="tabular-nums opacity-80">{count}</span>
+          </>
+        ) : null}
       </Button>
       {error && (
         <p className="text-sm text-danger" role="alert">

@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
+import { Bookmark, BookmarkSolid } from "@/components/icons";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
 import { toggleSave } from "./actions";
@@ -10,14 +11,12 @@ import { hasLocalSave, writeLocalSave } from "./local-store";
 
 type Props = {
   postId: string;
-  /** Server-known save state (real mode). Mock mode hydrates from localStorage. */
   initialSaved?: boolean;
   signedIn: boolean;
-  /** Profile id for mock localStorage key; omit when signed out */
   userId?: string | null;
-  /** Shelter role cannot save */
   canSave?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "icon";
+  iconOnly?: boolean;
 };
 
 export function SaveButton({
@@ -26,7 +25,8 @@ export function SaveButton({
   signedIn,
   userId,
   canSave = true,
-  size = "lg",
+  size = "icon",
+  iconOnly = true,
 }: Props) {
   const pathname = usePathname();
   const [saved, setSaved] = useState(initialSaved);
@@ -35,7 +35,6 @@ export function SaveButton({
   const [intent, setIntent] = useState<AuthIntent | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // Hydrate mock-mode saves from localStorage after mount
   useEffect(() => {
     if (!signedIn || !userId) return;
     if (initialSaved) return;
@@ -89,17 +88,16 @@ export function SaveButton({
     <div className="flex flex-col gap-1">
       <Button
         type="button"
-        variant={saved ? "primary" : "ghost"}
-        size={size}
+        variant="ghost"
+        size={iconOnly ? "icon" : size}
         disabled={pending}
         onClick={onClick}
         aria-pressed={saved}
         aria-label={saved ? "Unsave" : "Save"}
+        title={saved ? "Saved" : "Save"}
       >
-        <span aria-hidden className="inline-block">
-          {saved ? "★" : "☆"}
-        </span>
-        <span>{saved ? "Saved" : "Save"}</span>
+        {saved ? <BookmarkSolid size={24} /> : <Bookmark size={24} />}
+        {!iconOnly ? <span>{saved ? "Saved" : "Save"}</span> : null}
       </Button>
       {error && (
         <p className="text-sm text-danger" role="alert">

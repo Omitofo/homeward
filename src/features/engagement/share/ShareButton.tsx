@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui";
+import { Share } from "@/components/icons";
 
 type Props = {
-  /** Absolute or path URL of the post */
   url: string;
   title: string;
   text?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "icon";
+  iconOnly?: boolean;
 };
 
 function resolveUrl(url: string): string {
@@ -19,11 +20,13 @@ function resolveUrl(url: string): string {
   return url;
 }
 
-/**
- * Share a post. Prefer the native Web Share sheet; fall back to clipboard.
- * Available to visitors — no sign-in required (doc 02).
- */
-export function ShareButton({ url, title, text, size = "lg" }: Props) {
+export function ShareButton({
+  url,
+  title,
+  text,
+  size = "icon",
+  iconOnly = true,
+}: Props) {
   const [status, setStatus] = useState<string | null>(null);
 
   async function onShare() {
@@ -36,15 +39,16 @@ export function ShareButton({ url, title, text, size = "lg" }: Props) {
     };
 
     try {
-      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      if (
+        typeof navigator !== "undefined" &&
+        typeof navigator.share === "function"
+      ) {
         await navigator.share(payload);
         setStatus("Shared");
         return;
       }
     } catch (err) {
-      // User cancelled the share sheet — not an error
       if (err instanceof DOMException && err.name === "AbortError") return;
-      // Fall through to clipboard
     }
 
     try {
@@ -58,8 +62,16 @@ export function ShareButton({ url, title, text, size = "lg" }: Props) {
 
   return (
     <div className="flex flex-col gap-1">
-      <Button type="button" variant="ghost" size={size} onClick={onShare}>
-        Share
+      <Button
+        type="button"
+        variant="ghost"
+        size={iconOnly ? "icon" : size}
+        onClick={onShare}
+        title="Share"
+        aria-label="Share"
+      >
+        <Share size={24} />
+        {!iconOnly ? <span>Share</span> : null}
       </Button>
       {status && (
         <p className="text-xs text-muted" role="status">
