@@ -12,10 +12,13 @@ import {
   sendMessageSchema,
   startConversationSchema,
   blockPeerSchema,
+  unblockPeerIdSchema,
   extractPostIdsFromBody,
   type ChatMessage,
   type ChatPostCard,
   type ConversationSummary,
+  type BlockedPeerSummary,
+  type MessagesTab,
 } from "./schema";
 import {
   appendMockMessage,
@@ -29,7 +32,6 @@ import {
   totalMockUnreadForUser,
   unblockMockPeer,
   unhideMockConversationForBoth,
-  unhideMockConversationForPeer,
   upsertMockConversation,
 } from "./mock-store";
 
@@ -110,7 +112,24 @@ async function iBlockedPeer(
   return Boolean(data);
 }
 
-/** Clear archive for both participants (WhatsApp: activity restores inbox). */
+/** Find existing conversation for an unordered pair (either orientation). */
+async function findConversationForPair(
+  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
+  a: string,
+  b: string,
+): Promise<{ id: string } | null> {
+  const { data } = await supabase
+    .from("conversations")
+    .select("id")
+    .or(
+      `and(adopter_id.eq.${a},shelter_profile_id.eq.${b}),and(adopter_id.eq.${b},shelter_profile_id.eq.${a})`,
+    )
+    .limit(1)
+    .maybeSingle();
+  return data?.id ? { id: data.id } : null;
+}
+
+/** Clear archive for both participants when there is activity. */
 async function clearArchiveForConversation(
   supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
   conversationId: string,
@@ -136,7 +155,9 @@ export async function getUnreadMessageCount(): Promise<number> {
     .from("conversation_hides")
     .select("conversation_id")
     .eq("user_id", profile.id);
-  const hiddenIds = new Set((hides ?? []).map((h) => h.conversation_id as string));
+  const hiddenIds = new Set(
+    (hides ?? []).map((h) => h.conversation_id as string),
+  );
   const ids = convs.map((c) => c.id).filter((id) => !hiddenIds.has(id));
   if (ids.length === 0) return 0;
   const { count, error } = await supabase
@@ -152,16 +173,25 @@ export async function getUnreadMessageCount(): Promise<number> {
   return count ?? 0;
 }
 
-export async function listConversations(): Promise<
-  ActionResult<ConversationSummary[]>
-> {
+export async function listConversations(
+  tab: MessagesTab = "inbox",
+): Promise<ActionResult<ConversationSummary[]>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
-  if (useMock) {
-    return { ok: true, data: listMockConversationsForUser(profile.id) };
+
+  if (tab === "blocked") {
+    return { ok: true, data: [] };
   }
+
+  if (useMock) {
+    const all = listMockConversationsForUser(profile.id);
+    // mock store already filters hidden for default list; archived not fully modeled
+    return { ok: true, data: tab === "inbox" ? all : [] };
+  }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   const { data, error } = await supabase
     .from("conversations")
     .select(
@@ -169,20 +199,31 @@ export async function listConversations(): Promise<
     )
     .or(`adopter_id.eq.${profile.id},shelter_profile_id.eq.${profile.id}`)
     .order("updated_at", { ascending: false });
+
   if (error) {
     console.error("[listConversations]", error.message);
     return { ok: false, error: "Could not load conversations" };
   }
+
   const { data: hides } = await supabase
     .from("conversation_hides")
     .select("conversation_id")
     .eq("user_id", profile.id);
-  const hiddenIds = new Set((hides ?? []).map((h) => h.conversation_id as string));
-  const visible = (data ?? []).filter((row) => !hiddenIds.has(row.id));
+  const hiddenIds = new Set(
+    (hides ?? []).map((h) => h.conversation_id as string),
+  );
+
+  const rows = (data ?? []).filter((row) => {
+    const archived = hiddenIds.has(row.id);
+    return tab === "archived" ? archived : !archived;
+  });
+
   const items: ConversationSummary[] = await Promise.all(
-    visible.map(async (row) => {
+    rows.map(async (row) => {
       const peerId =
-        row.adopter_id === profile.id ? row.shelter_profile_id : row.adopter_id;
+        row.adopter_id === profile.id
+          ? row.shelter_profile_id
+          : row.adopter_id;
       const { data: peer } = await supabase
         .from("profiles")
         .select("display_name")
@@ -212,9 +253,61 @@ export async function listConversations(): Promise<
         lastMessagePreview: last?.body?.slice(0, 120) ?? null,
         unreadCount: unread,
         blockedByMe,
+        archived: hiddenIds.has(row.id),
       };
     }),
   );
+
+  return { ok: true, data: items };
+}
+
+/** People you blocked — Unblock works even if the chat is archived. */
+export async function listBlockedPeers(): Promise<
+  ActionResult<BlockedPeerSummary[]>
+> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Sign in required" };
+
+  if (useMock) {
+    return { ok: true, data: [] };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
+  const { data: blocks, error } = await supabase
+    .from("profile_blocks")
+    .select("blocked_id, created_at")
+    .eq("blocker_id", profile.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[listBlockedPeers]", error.message);
+    return {
+      ok: false,
+      error:
+        "Could not load blocked list. Run migration 20260928120000 if needed.",
+    };
+  }
+
+  const items: BlockedPeerSummary[] = await Promise.all(
+    (blocks ?? []).map(async (b) => {
+      const peerId = b.blocked_id as string;
+      const { data: peer } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", peerId)
+        .maybeSingle();
+      const conv = await findConversationForPair(supabase, profile.id, peerId);
+      return {
+        peerId,
+        peerName: peer?.display_name ?? "Member",
+        blockedAt: b.created_at as string,
+        conversationId: conv?.id ?? null,
+      };
+    }),
+  );
+
   return { ok: true, data: items };
 }
 
@@ -234,6 +327,7 @@ export async function getConversationMessages(
 > {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
     if (!c) return { ok: false, error: "Conversation not found" };
@@ -255,13 +349,16 @@ export async function getConversationMessages(
       },
     };
   }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   const { data: conv, error: convError } = await supabase
     .from("conversations")
     .select("id, adopter_id, shelter_profile_id, post_id")
     .eq("id", conversationId)
     .maybeSingle();
+
   if (convError || !conv) return { ok: false, error: "Conversation not found" };
   if (
     conv.adopter_id !== profile.id &&
@@ -270,25 +367,33 @@ export async function getConversationMessages(
   ) {
     return { ok: false, error: "Access denied" };
   }
+
   const peerId =
-    conv.adopter_id === profile.id ? conv.shelter_profile_id : conv.adopter_id;
+    conv.adopter_id === profile.id
+      ? conv.shelter_profile_id
+      : conv.adopter_id;
+
   const { data: peer } = await supabase
     .from("profiles")
     .select("display_name, role")
     .eq("id", peerId)
     .maybeSingle();
+
   const { data: msgs, error: msgError } = await supabase
     .from("messages")
     .select("id, conversation_id, sender_id, body, created_at, read_at")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
+
   if (msgError) return { ok: false, error: "Could not load messages" };
+
   await supabase
     .from("messages")
     .update({ read_at: new Date().toISOString() })
     .eq("conversation_id", conversationId)
     .neq("sender_id", profile.id)
     .is("read_at", null);
+
   const messages: ChatMessage[] = (msgs ?? []).map((m) => ({
     id: m.id,
     conversationId: m.conversation_id,
@@ -297,6 +402,7 @@ export async function getConversationMessages(
     createdAt: m.created_at,
     readAt: m.read_at,
   }));
+
   const postCards = await resolvePostCards(messages);
   const blockedByMe = await iBlockedPeer(supabase, profile.id, peerId);
   const messagingBlocked = await pairIsBlocked(
@@ -304,6 +410,7 @@ export async function getConversationMessages(
     conv.adopter_id,
     conv.shelter_profile_id,
   );
+
   return {
     ok: true,
     data: {
@@ -324,11 +431,13 @@ export async function startConversation(
 ): Promise<ActionResult<{ id: string }>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   if (profile.role === "shelter") {
     // ok
   } else if (profile.role !== "adopter" && profile.role !== "admin") {
     return { ok: false, error: "Cannot start a chat with this account" };
   }
+
   const limited = rateLimit(`start-chat:${profile.id}`, RATE_LIMITS.startChat);
   if (!limited.ok) {
     return {
@@ -336,10 +445,12 @@ export async function startConversation(
       error: `Too many new chats. Wait about ${limited.retryAfterSec}s and try again.`,
     };
   }
+
   const parsed = startConversationSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
   }
+
   const { shelterId, postId, initialMessage } = parsed.data;
   const shelter = await resolveShelterProfileId(shelterId);
   if (!shelter) return { ok: false, error: "Shelter not found" };
@@ -347,11 +458,13 @@ export async function startConversation(
   if (shelterProfileId === profile.id) {
     return { ok: false, error: "Cannot message yourself" };
   }
+
   const body =
     initialMessage ??
     (profile.role === "shelter"
       ? "Hi! Reaching out from our rescue — happy to coordinate if useful."
       : undefined);
+
   if (useMock) {
     if (isMockBlocked(profile.id, shelterProfileId)) {
       return { ok: false, error: "You can't message this person (blocked)." };
@@ -401,17 +514,21 @@ export async function startConversation(
     revalidatePath("/messages");
     return { ok: true, data: { id } };
   }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   if (await pairIsBlocked(supabase, profile.id, shelterProfileId)) {
     return { ok: false, error: "You can't message this person (blocked)." };
   }
-  const { data: existing } = await supabase
-    .from("conversations")
-    .select("id")
-    .eq("adopter_id", profile.id)
-    .eq("shelter_profile_id", shelterProfileId)
-    .maybeSingle();
+
+  // Either orientation of the pair
+  const existing = await findConversationForPair(
+    supabase,
+    profile.id,
+    shelterProfileId,
+  );
+
   let conversationId: string;
   if (existing?.id) {
     conversationId = existing.id;
@@ -426,12 +543,25 @@ export async function startConversation(
       })
       .select("id")
       .single();
+
     if (error || !created?.id) {
       console.error("[startConversation]", error?.message);
-      return { ok: false, error: "Could not start conversation" };
+      // Race: reverse pair inserted first
+      const again = await findConversationForPair(
+        supabase,
+        profile.id,
+        shelterProfileId,
+      );
+      if (again?.id) {
+        conversationId = again.id;
+      } else {
+        return { ok: false, error: "Could not start conversation" };
+      }
+    } else {
+      conversationId = created.id;
     }
-    conversationId = created.id;
   }
+
   if (body) {
     const { error: msgError } = await supabase.from("messages").insert({
       conversation_id: conversationId,
@@ -440,7 +570,7 @@ export async function startConversation(
     });
     if (msgError) console.error("[startConversation] message", msgError.message);
   }
-  // Resume / message restores inbox for both (not only peer)
+
   await clearArchiveForConversation(supabase, conversationId);
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversationId}`);
@@ -454,6 +584,7 @@ export async function sendMessage(
 > {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   const limited = rateLimit(`message:${profile.id}`, RATE_LIMITS.message);
   if (!limited.ok) {
     return {
@@ -461,12 +592,15 @@ export async function sendMessage(
       error: `Message limit reached (50 per 30 minutes). Wait about ${limited.retryAfterSec}s and try again.`,
     };
   }
+
   const parsed = sendMessageSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
   }
+
   const { conversationId, body } = parsed.data;
   const now = new Date().toISOString();
+
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
     if (!c) return { ok: false, error: "Conversation not found" };
@@ -487,15 +621,21 @@ export async function sendMessage(
     unhideMockConversationForBoth(conversationId);
     revalidatePath(`/messages/${conversationId}`);
     revalidatePath("/messages");
-    return { ok: true, data: { id: msg.id, senderId: profile.id, createdAt: now } };
+    return {
+      ok: true,
+      data: { id: msg.id, senderId: profile.id, createdAt: now },
+    };
   }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   const { data: conv } = await supabase
     .from("conversations")
     .select("id, adopter_id, shelter_profile_id")
     .eq("id", conversationId)
     .maybeSingle();
+
   if (!conv) return { ok: false, error: "Conversation not found" };
   if (
     conv.adopter_id !== profile.id &&
@@ -504,25 +644,40 @@ export async function sendMessage(
   ) {
     return { ok: false, error: "Access denied" };
   }
-  if (await pairIsBlocked(supabase, conv.adopter_id, conv.shelter_profile_id)) {
+
+  if (
+    await pairIsBlocked(supabase, conv.adopter_id, conv.shelter_profile_id)
+  ) {
     return { ok: false, error: "You can't message this person (blocked)." };
   }
+
   const { data, error } = await supabase
     .from("messages")
-    .insert({ conversation_id: conversationId, sender_id: profile.id, body })
+    .insert({
+      conversation_id: conversationId,
+      sender_id: profile.id,
+      body,
+    })
     .select("id, created_at")
     .single();
+
   if (error || !data) {
     console.error("[sendMessage]", error?.message);
     return { ok: false, error: "Could not send message" };
   }
-  // Unarchive for both sides so inbox lists stay in sync after activity
+
+  // Activity restores inbox for both (archive is not a mute)
   await clearArchiveForConversation(supabase, conversationId);
+
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
   return {
     ok: true,
-    data: { id: data.id, senderId: profile.id, createdAt: data.created_at },
+    data: {
+      id: data.id,
+      senderId: profile.id,
+      createdAt: data.created_at,
+    },
   };
 }
 
@@ -531,6 +686,7 @@ export async function archiveConversation(
 ): Promise<ActionResult<{ id: string }>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   if (useMock) {
     const ok = hideMockConversation(conversationId, profile.id);
     if (!ok) return { ok: false, error: "Conversation not found" };
@@ -538,13 +694,16 @@ export async function archiveConversation(
     revalidatePath(`/messages/${conversationId}`);
     return { ok: true, data: { id: conversationId } };
   }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   const { data: conv } = await supabase
     .from("conversations")
     .select("id, adopter_id, shelter_profile_id")
     .eq("id", conversationId)
     .maybeSingle();
+
   if (!conv) return { ok: false, error: "Conversation not found" };
   if (
     conv.adopter_id !== profile.id &&
@@ -553,6 +712,7 @@ export async function archiveConversation(
   ) {
     return { ok: false, error: "Access denied" };
   }
+
   const { error } = await supabase.from("conversation_hides").upsert(
     {
       user_id: profile.id,
@@ -561,20 +721,18 @@ export async function archiveConversation(
     },
     { onConflict: "user_id,conversation_id" },
   );
+
   if (error) {
     console.error("[archiveConversation]", error.message);
-    return {
-      ok: false,
-      error:
-        "Could not archive. Run migration 20260927120000 if needed.",
-    };
+    return { ok: false, error: "Could not archive." };
   }
+
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversationId}`);
   return { ok: true, data: { id: conversationId } };
 }
 
-/** @deprecated use archiveConversation */
+/** @deprecated */
 export async function hideConversationForMe(
   conversationId: string,
   _options?: { alsoClose?: boolean },
@@ -587,11 +745,13 @@ export async function blockPeer(
 ): Promise<ActionResult<{ id: string }>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   const parsed = blockPeerSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
   }
   const { conversationId } = parsed.data;
+
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
     if (!c) return { ok: false, error: "Conversation not found" };
@@ -603,13 +763,16 @@ export async function blockPeer(
     revalidatePath("/messages");
     return { ok: true, data: { id: conversationId } };
   }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   const { data: conv } = await supabase
     .from("conversations")
     .select("id, adopter_id, shelter_profile_id")
     .eq("id", conversationId)
     .maybeSingle();
+
   if (!conv) return { ok: false, error: "Conversation not found" };
   if (
     conv.adopter_id !== profile.id &&
@@ -617,20 +780,27 @@ export async function blockPeer(
   ) {
     return { ok: false, error: "Access denied" };
   }
+
   const peerId =
-    conv.adopter_id === profile.id ? conv.shelter_profile_id : conv.adopter_id;
+    conv.adopter_id === profile.id
+      ? conv.shelter_profile_id
+      : conv.adopter_id;
+
   const { data: peer } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", peerId)
     .maybeSingle();
+
   if (peer?.role === "admin") {
     return { ok: false, error: "You cannot block Homeward support." };
   }
+
   const { error } = await supabase.from("profile_blocks").upsert(
     { blocker_id: profile.id, blocked_id: peerId },
     { onConflict: "blocker_id,blocked_id" },
   );
+
   if (error) {
     console.error("[blockPeer]", error.message);
     return {
@@ -639,6 +809,8 @@ export async function blockPeer(
         "Could not block. Run migration 20260928120000_grant_profile_blocks.sql if needed.",
     };
   }
+
+  // Keep out of inbox; recoverable via Blocked tab
   await supabase.from("conversation_hides").upsert(
     {
       user_id: profile.id,
@@ -647,6 +819,7 @@ export async function blockPeer(
     },
     { onConflict: "user_id,conversation_id" },
   );
+
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
   return { ok: true, data: { id: conversationId } };
@@ -657,11 +830,13 @@ export async function unblockPeer(
 ): Promise<ActionResult<{ id: string }>> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Sign in required" };
+
   const parsed = blockPeerSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
   }
   const { conversationId } = parsed.data;
+
   if (useMock) {
     const c = getMockConversation(conversationId, profile.id);
     if (!c) return { ok: false, error: "Conversation not found" };
@@ -672,13 +847,16 @@ export async function unblockPeer(
     revalidatePath("/messages");
     return { ok: true, data: { id: conversationId } };
   }
+
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
   const { data: conv } = await supabase
     .from("conversations")
     .select("id, adopter_id, shelter_profile_id")
     .eq("id", conversationId)
     .maybeSingle();
+
   if (!conv) return { ok: false, error: "Conversation not found" };
   if (
     conv.adopter_id !== profile.id &&
@@ -686,18 +864,61 @@ export async function unblockPeer(
   ) {
     return { ok: false, error: "Access denied" };
   }
+
   const peerId =
-    conv.adopter_id === profile.id ? conv.shelter_profile_id : conv.adopter_id;
+    conv.adopter_id === profile.id
+      ? conv.shelter_profile_id
+      : conv.adopter_id;
+
   const { error } = await supabase
     .from("profile_blocks")
     .delete()
     .eq("blocker_id", profile.id)
     .eq("blocked_id", peerId);
+
   if (error) {
     console.error("[unblockPeer]", error.message);
     return { ok: false, error: "Could not unblock" };
   }
+
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
   return { ok: true, data: { id: conversationId } };
+}
+
+/** Unblock by peer profile id (Blocked tab — no need for open thread). */
+export async function unblockPeerById(
+  raw: unknown,
+): Promise<ActionResult<{ peerId: string }>> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Sign in required" };
+
+  const parsed = unblockPeerIdSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid" };
+  }
+  const { peerId } = parsed.data;
+
+  if (useMock) {
+    unblockMockPeer(profile.id, peerId);
+    revalidatePath("/messages");
+    return { ok: true, data: { peerId } };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "Supabase is not configured" };
+
+  const { error } = await supabase
+    .from("profile_blocks")
+    .delete()
+    .eq("blocker_id", profile.id)
+    .eq("blocked_id", peerId);
+
+  if (error) {
+    console.error("[unblockPeerById]", error.message);
+    return { ok: false, error: "Could not unblock" };
+  }
+
+  revalidatePath("/messages");
+  return { ok: true, data: { peerId } };
 }
