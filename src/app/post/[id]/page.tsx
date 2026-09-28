@@ -123,8 +123,8 @@ export default async function PostDetailPage({ params }: Props) {
   return (
     /*
       Mobile: natural page height + document scroll.
-      Desktop: lock to viewport height so only the right column scrolls
-      (no grey page scrollbar under the split container).
+      Desktop: lock shell to the viewport — header stays put, only the
+      right column of the post card scrolls. No empty page below the card.
     */
     <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
       <AppHeader
@@ -137,9 +137,9 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-4 lg:py-6"
+        className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-3 lg:overflow-hidden lg:py-4"
       >
-        <div className="mb-3 shrink-0 lg:mb-4">
+        <div className="mb-2 shrink-0 lg:mb-3">
           <IntentResume signedIn={signedIn} />
         </div>
 
@@ -153,11 +153,9 @@ export default async function PostDetailPage({ params }: Props) {
             "lg:grid-cols-2"
           }
         >
-          {/* Left: no extra empty space; fills column height on desktop */}
-          <div className="bg-secondary lg:h-full lg:min-h-0 lg:overflow-hidden lg:border-r lg:border-border">
-            <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
-              <PostGallery media={post.media} name={post.name} />
-            </div>
+          {/* Left: fills column height on desktop */}
+          <div className="bg-secondary lg:min-h-0 lg:h-full lg:overflow-hidden lg:border-r lg:border-border">
+            <PostGallery media={post.media} name={post.name} />
           </div>
 
           {/* Right: independent scroll on desktop; themed scrollbar like filter sheet */}

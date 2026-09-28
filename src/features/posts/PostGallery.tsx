@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import Image from "next/image";
 import type { PostMedia } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
+import { ChevronLeft, ChevronRight } from "@/components/icons";
 
 type Props = {
   media: PostMedia[];
@@ -36,7 +37,7 @@ export function PostGallery({ media, name }: Props) {
 
   if (count === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-lg bg-secondary text-muted">
+      <div className="flex aspect-square items-center justify-center rounded-lg bg-secondary text-muted lg:aspect-auto lg:h-full">
         No photo
       </div>
     );
@@ -46,17 +47,21 @@ export function PostGallery({ media, name }: Props) {
 
   return (
     <div
-      className="space-y-3"
+      className="space-y-3 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:gap-2 lg:space-y-0 lg:p-3"
       role="group"
       aria-roledescription="carousel"
       aria-label={`${name} photos`}
     >
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary">
+      {/*
+        Mobile: square aspect.
+        Desktop: fill remaining left-column height (parent is flex + min-h-0).
+      */}
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary lg:aspect-auto lg:min-h-0 lg:flex-1 lg:rounded-xl">
         <Image
           src={current.url}
           alt={current.altText || `${name} photo ${index + 1}`}
           fill
-          sizes="(max-width: 1024px) 100vw, 50vw"
+          sizes="(max-width: 1024px) 100vw, 40vw"
           className="object-cover"
           priority={index === 0}
         />
@@ -70,18 +75,18 @@ export function PostGallery({ media, name }: Props) {
             <button
               type="button"
               onClick={() => go(-1)}
-              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Previous photo"
             >
-              ‹
+              <ChevronLeft size={20} />
             </button>
             <button
               type="button"
               onClick={() => go(1)}
-              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Next photo"
             >
-              ›
+              <ChevronRight size={20} />
             </button>
           </>
         )}
@@ -110,14 +115,17 @@ export function PostGallery({ media, name }: Props) {
       </div>
 
       {count > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1" role="list">
+        <div
+          className="flex gap-2 overflow-x-auto pb-1 lg:shrink-0 lg:pb-0"
+          role="list"
+        >
           {sorted.map((m, i) => (
             <button
               key={m.id}
               type="button"
               onClick={() => setIndex(i)}
               className={cn(
-                "relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-opacity",
+                "relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 transition-opacity sm:h-16 sm:w-16",
                 i === index
                   ? "border-primary opacity-100"
                   : "border-transparent opacity-70 hover:opacity-100",

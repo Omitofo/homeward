@@ -6,3 +6,5 @@ export { Archive } from "./Archive";
 export { Ban } from "./Ban";
 export { MessageCircle } from "./MessageCircle";
 export { Unlock } from "./Unlock";
+export { ChevronLeft } from "./ChevronLeft";
+export { ChevronRight } from "./ChevronRight";
