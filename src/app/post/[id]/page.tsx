@@ -5,6 +5,7 @@ import { postsRepository } from "@/features/posts";
 import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { PostGallery } from "@/features/posts/PostGallery";
 import { PostActions } from "@/features/posts/PostActions";
+import { LockPostScroll } from "@/features/posts/LockPostScroll";
 import { getCurrentProfile, IntentResume } from "@/features/auth";
 import {
   getLikedByMe,
@@ -123,10 +124,11 @@ export default async function PostDetailPage({ params }: Props) {
   return (
     /*
       Mobile: natural document scroll.
-      Desktop: fixed to the viewport — zero page scroll. Header + card
-      fit in 100dvh; only the right column scrolls inside the card.
+      Desktop: shell fills the viewport; html/body overflow locked via
+      LockPostScroll. Only the right column scrolls inside the card.
     */
-    <div className="flex min-h-full flex-col lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden">
+    <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
+      <LockPostScroll />
       <AppHeader
         profile={profile}
         maxWidthClassName="max-w-3xl"
@@ -137,30 +139,23 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col px-3 py-2 lg:overflow-hidden lg:py-2"
+        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col overflow-hidden px-3 py-2"
       >
-        <div className="mb-1.5 shrink-0 lg:mb-1.5">
+        <div className="mb-1.5 shrink-0">
           <IntentResume signedIn={signedIn} />
         </div>
 
-        {/*
-          Mobile: single column, natural page scroll.
-          Desktop: fills remaining height under header; both columns
-          share that height; only the right pane scrolls.
-        */}
         <div
           className={
-            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
-            "lg:grid-cols-2 lg:grid-rows-1"
+            "grid min-h-0 flex-1 grid-rows-1 gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
+            "lg:grid-cols-2"
           }
         >
-          {/* Left: image top-aligned; secondary fills rest of column */}
-          <div className="bg-secondary lg:min-h-0 lg:overflow-hidden lg:border-r lg:border-border">
+          <div className="min-h-0 overflow-hidden bg-secondary lg:border-r lg:border-border">
             <PostGallery media={post.media} name={post.name} />
           </div>
 
-          {/* Right: only scroll surface on desktop */}
-          <div className="sheet-scroll flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:h-full">
+          <div className="sheet-scroll flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:p-4">
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="flex items-center gap-2"
