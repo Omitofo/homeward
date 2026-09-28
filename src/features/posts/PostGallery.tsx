@@ -37,7 +37,7 @@ export function PostGallery({ media, name }: Props) {
 
   if (count === 0) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-lg bg-secondary text-muted lg:aspect-auto lg:h-[17.5rem]">
+      <div className="flex aspect-square items-center justify-center rounded-lg bg-secondary text-muted lg:aspect-auto lg:h-56">
         No photo
       </div>
     );
@@ -47,16 +47,16 @@ export function PostGallery({ media, name }: Props) {
 
   return (
     <div
-      className="space-y-2 lg:flex lg:flex-col lg:gap-1.5 lg:space-y-0 lg:p-2"
+      className="space-y-2 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:gap-1.5 lg:space-y-0 lg:p-2"
       role="group"
       aria-roledescription="carousel"
       aria-label={`${name} photos`}
     >
       {/*
         Mobile: square aspect.
-        Desktop: fixed moderate height (no full-column stretch).
+        Desktop: compact fixed height inside the shorter card.
       */}
-      <div className="relative aspect-square overflow-hidden rounded-md bg-secondary lg:aspect-auto lg:h-[17.5rem] lg:w-full lg:rounded-lg">
+      <div className="relative aspect-square overflow-hidden rounded-md bg-secondary lg:aspect-auto lg:h-56 lg:max-h-[45%] lg:w-full lg:flex-1 lg:rounded-lg">
         <Image
           src={current.url}
           alt={current.altText || `${name} photo ${index + 1}`}

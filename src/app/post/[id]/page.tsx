@@ -124,8 +124,8 @@ export default async function PostDetailPage({ params }: Props) {
   return (
     /*
       Mobile: natural document scroll.
-      Desktop: shell fills the viewport; html/body overflow locked via
-      LockPostScroll. Only the right column scrolls inside the card.
+      Desktop: page locked; card capped at ~80dvh and vertically centered
+      under the header so it cannot force page overflow.
     */
     <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
       <LockPostScroll />
@@ -139,23 +139,27 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col overflow-hidden px-3 py-2"
+        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col justify-center overflow-hidden px-3 py-3"
       >
         <div className="mb-1.5 shrink-0">
           <IntentResume signedIn={signedIn} />
         </div>
 
+        {/*
+          Desktop: max ~80% of viewport height so the card sits comfortably
+          inside the shell with clear margin above/below.
+        */}
         <div
           className={
-            "grid min-h-0 flex-1 grid-rows-1 gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
-            "lg:grid-cols-2"
+            "grid min-h-0 w-full gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
+            "lg:max-h-[80dvh] lg:grid-cols-2 lg:grid-rows-1"
           }
         >
           <div className="min-h-0 overflow-hidden bg-secondary lg:border-r lg:border-border">
             <PostGallery media={post.media} name={post.name} />
           </div>
 
-          <div className="sheet-scroll flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:p-4">
+          <div className="sheet-scroll flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:max-h-[80dvh]">
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="flex items-center gap-2"
