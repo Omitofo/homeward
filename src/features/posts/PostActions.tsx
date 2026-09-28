@@ -70,25 +70,23 @@ export function PostActions({
   return (
     <>
       <div className="flex flex-col gap-4">
-        {/* Instagram-style engagement row */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <LikeButton
-              postId={postId}
-              initialCount={likeCount}
-              initialLiked={initialLiked}
-              signedIn={signedIn}
-              userId={userId}
-              canLike
-              iconOnly
-            />
-            <ShareButton
-              url={shareUrl}
-              title={shareTitle}
-              text={shareText}
-              iconOnly
-            />
-          </div>
+        {/* Icons grouped together: like · share · save */}
+        <div className="flex items-center gap-1">
+          <LikeButton
+            postId={postId}
+            initialCount={likeCount}
+            initialLiked={initialLiked}
+            signedIn={signedIn}
+            userId={userId}
+            canLike
+            iconOnly
+          />
+          <ShareButton
+            url={shareUrl}
+            title={shareTitle}
+            text={shareText}
+            iconOnly
+          />
           <SaveButton
             postId={postId}
             initialSaved={initialSaved}
@@ -106,7 +104,6 @@ export function PostActions({
           </p>
         ) : null}
 
-        {/* Primary CTA */}
         <div className="flex flex-wrap items-center gap-3">
           {blockedByMe && shelterProfileId ? (
             <UnblockPeerButton peerId={shelterProfileId} size="lg" showLabel />
