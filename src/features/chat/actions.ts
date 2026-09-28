@@ -28,6 +28,7 @@ import {
   listMockConversationsForUser,
   totalMockUnreadForUser,
   unblockMockPeer,
+  unhideMockConversationForBoth,
   unhideMockConversationForPeer,
   upsertMockConversation,
 } from "./mock-store";
@@ -107,6 +108,17 @@ async function iBlockedPeer(
     .eq("blocked_id", peer)
     .maybeSingle();
   return Boolean(data);
+}
+
+/** Clear archive for both participants (WhatsApp: activity restores inbox). */
+async function clearArchiveForConversation(
+  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
+  conversationId: string,
+) {
+  await supabase
+    .from("conversation_hides")
+    .delete()
+    .eq("conversation_id", conversationId);
 }
 
 export async function getUnreadMessageCount(): Promise<number> {
@@ -356,8 +368,8 @@ export async function startConversation(
           readAt: null,
         };
         appendMockMessage(existing.id, msg, body.slice(0, 120));
-        unhideMockConversationForPeer(existing.id, profile.id);
       }
+      unhideMockConversationForBoth(existing.id);
       return { ok: true, data: { id: existing.id } };
     }
     const id = `c-${randomUUID().slice(0, 8)}`;
@@ -427,14 +439,9 @@ export async function startConversation(
       body,
     });
     if (msgError) console.error("[startConversation] message", msgError.message);
-    else {
-      await supabase
-        .from("conversation_hides")
-        .delete()
-        .eq("conversation_id", conversationId)
-        .eq("user_id", shelterProfileId);
-    }
   }
+  // Resume / message restores inbox for both (not only peer)
+  await clearArchiveForConversation(supabase, conversationId);
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversationId}`);
   return { ok: true, data: { id: conversationId } };
@@ -477,7 +484,7 @@ export async function sendMessage(
       readAt: null,
     };
     appendMockMessage(conversationId, msg, body.slice(0, 120));
-    unhideMockConversationForPeer(conversationId, profile.id);
+    unhideMockConversationForBoth(conversationId);
     revalidatePath(`/messages/${conversationId}`);
     revalidatePath("/messages");
     return { ok: true, data: { id: msg.id, senderId: profile.id, createdAt: now } };
@@ -509,13 +516,8 @@ export async function sendMessage(
     console.error("[sendMessage]", error?.message);
     return { ok: false, error: "Could not send message" };
   }
-  const peerId =
-    conv.adopter_id === profile.id ? conv.shelter_profile_id : conv.adopter_id;
-  await supabase
-    .from("conversation_hides")
-    .delete()
-    .eq("conversation_id", conversationId)
-    .eq("user_id", peerId);
+  // Unarchive for both sides so inbox lists stay in sync after activity
+  await clearArchiveForConversation(supabase, conversationId);
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
   return {
@@ -634,7 +636,7 @@ export async function blockPeer(
     return {
       ok: false,
       error:
-        "Could not block. Run migration 20260927200000_profile_blocks_and_open_chats.sql if needed.",
+        "Could not block. Run migration 20260928120000_grant_profile_blocks.sql if needed.",
     };
   }
   await supabase.from("conversation_hides").upsert(
