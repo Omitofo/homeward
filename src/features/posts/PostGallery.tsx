@@ -47,7 +47,7 @@ export function PostGallery({ media, name }: Props) {
 
   return (
     <div
-      className="space-y-3 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:gap-2 lg:space-y-0 lg:p-2.5"
+      className="space-y-2 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:gap-1.5 lg:space-y-0 lg:p-2"
       role="group"
       aria-roledescription="carousel"
       aria-label={`${name} photos`}
@@ -56,12 +56,12 @@ export function PostGallery({ media, name }: Props) {
         Mobile: square aspect.
         Desktop: fill remaining left-column height (parent is flex + min-h-0).
       */}
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary lg:aspect-auto lg:min-h-0 lg:flex-1 lg:rounded-xl">
+      <div className="relative aspect-square overflow-hidden rounded-md bg-secondary lg:aspect-auto lg:min-h-0 lg:flex-1 lg:rounded-lg">
         <Image
           src={current.url}
           alt={current.altText || `${name} photo ${index + 1}`}
           fill
-          sizes="(max-width: 1024px) 100vw, 36vw"
+          sizes="(max-width: 1024px) 100vw, 28vw"
           className="object-cover"
           priority={index === 0}
         />
@@ -75,25 +75,25 @@ export function PostGallery({ media, name }: Props) {
             <button
               type="button"
               onClick={() => go(-1)}
-              className="absolute left-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute left-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Previous photo"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={14} />
             </button>
             <button
               type="button"
               onClick={() => go(1)}
-              className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Next photo"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={14} />
             </button>
           </>
         )}
 
         {count > 1 && (
           <div
-            className="absolute bottom-2.5 left-1/2 flex -translate-x-1/2 gap-1.5"
+            className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1"
             role="tablist"
             aria-label="Photo pagination"
           >
@@ -103,8 +103,8 @@ export function PostGallery({ media, name }: Props) {
                 type="button"
                 onClick={() => setIndex(i)}
                 className={cn(
-                  "h-2 min-w-2 rounded-full transition-all",
-                  i === index ? "w-3.5 bg-primary" : "w-2 bg-background/70",
+                  "h-1.5 min-w-1.5 rounded-full transition-all",
+                  i === index ? "w-3 bg-primary" : "w-1.5 bg-background/70",
                 )}
                 aria-label={`Photo ${i + 1} of ${count}`}
                 aria-current={i === index ? "true" : undefined}
@@ -116,7 +116,7 @@ export function PostGallery({ media, name }: Props) {
 
       {count > 1 && (
         <div
-          className="flex gap-1.5 overflow-x-auto pb-1 lg:shrink-0 lg:pb-0"
+          className="flex gap-1.5 overflow-x-auto pb-0.5 lg:shrink-0 lg:pb-0"
           role="list"
         >
           {sorted.map((m, i) => (
@@ -125,7 +125,7 @@ export function PostGallery({ media, name }: Props) {
               type="button"
               onClick={() => setIndex(i)}
               className={cn(
-                "relative h-12 w-12 shrink-0 overflow-hidden rounded-md border-2 transition-opacity sm:h-14 sm:w-14",
+                "relative h-10 w-10 shrink-0 overflow-hidden rounded border-2 transition-opacity sm:h-11 sm:w-11",
                 i === index
                   ? "border-primary opacity-100"
                   : "border-transparent opacity-70 hover:opacity-100",
@@ -137,7 +137,7 @@ export function PostGallery({ media, name }: Props) {
                 src={m.url}
                 alt=""
                 fill
-                sizes="56px"
+                sizes="44px"
                 className="object-cover"
               />
             </button>

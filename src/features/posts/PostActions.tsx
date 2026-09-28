@@ -69,9 +69,9 @@ export function PostActions({
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2.5">
         {/* Icons grouped together: like · share · save */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <LikeButton
             postId={postId}
             initialCount={likeCount}
@@ -98,13 +98,13 @@ export function PostActions({
         </div>
 
         {likeCount > 0 ? (
-          <p className="text-sm font-semibold tabular-nums text-foreground">
+          <p className="text-xs font-semibold tabular-nums text-foreground">
             {likeCount.toLocaleString("en-GB")}{" "}
             {likeCount === 1 ? "like" : "likes"}
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {blockedByMe && shelterProfileId ? (
             <UnblockPeerButton peerId={shelterProfileId} size="lg" showLabel />
           ) : shelterId && canStartChat ? (
@@ -118,7 +118,7 @@ export function PostActions({
             />
           ) : (
             <Button size="lg" disabled className="gap-2">
-              <MessageCircle size={20} />
+              <MessageCircle size={18} />
               {isOwnShelterPost
                 ? "Your listing"
                 : status === "available"

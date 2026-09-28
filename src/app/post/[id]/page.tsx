@@ -129,7 +129,7 @@ export default async function PostDetailPage({ params }: Props) {
     <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
       <AppHeader
         profile={profile}
-        maxWidthClassName="max-w-4xl"
+        maxWidthClassName="max-w-3xl"
         loginNext={`/post/${post.id}`}
         sticky={false}
         className="shrink-0"
@@ -137,9 +137,9 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-4xl min-h-0 flex-1 flex-col px-4 py-2.5 lg:overflow-hidden lg:py-3"
+        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col px-3 py-2 lg:overflow-hidden lg:py-2.5"
       >
-        <div className="mb-2 shrink-0 lg:mb-2.5">
+        <div className="mb-1.5 shrink-0 lg:mb-2">
           <IntentResume signedIn={signedIn} />
         </div>
 
@@ -149,7 +149,7 @@ export default async function PostDetailPage({ params }: Props) {
         */}
         <div
           className={
-            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm " +
+            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
             "lg:grid-cols-2"
           }
         >
@@ -159,10 +159,10 @@ export default async function PostDetailPage({ params }: Props) {
           </div>
 
           {/* Right: independent scroll on desktop; themed scrollbar like filter sheet */}
-          <div className="sheet-scroll flex flex-col gap-4 overflow-y-auto p-4 sm:p-5 lg:min-h-0 lg:h-full">
+          <div className="sheet-scroll flex flex-col gap-3 overflow-y-auto p-3 sm:p-4 lg:min-h-0 lg:h-full">
             <Link
               href={`/shelter/${post.shelter.handle}`}
-              className="flex items-center gap-2.5"
+              className="flex items-center gap-2"
             >
               <Avatar
                 name={post.shelter.orgName}
@@ -170,39 +170,39 @@ export default async function PostDetailPage({ params }: Props) {
                 src={post.shelter.avatarUrl}
               />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold">
+                <div className="flex items-center gap-1">
+                  <span className="truncate text-xs font-semibold">
                     {post.shelter.orgName}
                   </span>
                   {post.shelter.verificationStatus === "verified" && (
                     <VerifiedBadge />
                   )}
                 </div>
-                <p className="truncate text-xs text-muted">
+                <p className="truncate text-[11px] text-muted">
                   {post.shelter.city}, {post.shelter.countryCode}
                 </p>
               </div>
             </Link>
 
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <Badge variant={statusVariant(post.status)} withDot>
                   {capitalize(post.status)}
                 </Badge>
-                <span className="text-xs text-muted">
+                <span className="text-[11px] text-muted">
                   {capitalize(post.species)} · {capitalize(post.size)}
                 </span>
               </div>
 
-              <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
                 {post.name}
               </h1>
 
-              <p className="text-sm text-muted">
+              <p className="text-xs text-muted">
                 {post.breed} · {ageLabel(post.ageMonths, post.ageGroup)} ·{" "}
                 {capitalize(post.sex)}
               </p>
-              <p className="text-sm text-muted">
+              <p className="text-xs text-muted">
                 {post.city}, {post.region} · {post.countryCode}
               </p>
             </div>
@@ -225,30 +225,30 @@ export default async function PostDetailPage({ params }: Props) {
               shareText={shareText}
             />
 
-            <div className="space-y-2 border-t border-border pt-3">
-              <p className="leading-relaxed text-foreground">
+            <div className="space-y-1.5 border-t border-border pt-2.5">
+              <p className="text-sm leading-relaxed text-foreground">
                 <span className="font-semibold">{post.name}</span>{" "}
                 {post.description}
               </p>
               {post.traits.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1 pt-0.5">
                   {post.traits.map((t) => (
                     <span
                       key={t}
-                      className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground"
+                      className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground"
                     >
                       {t.replace(/-/g, " ")}
                     </span>
                   ))}
                 </div>
               ) : null}
-              <p className="text-xs text-muted">
+              <p className="text-[11px] text-muted">
                 Listed {formatListedDate(post.createdAt)} · {post.commentCount}{" "}
                 comments
               </p>
             </div>
 
-            <div className="border-t border-border pt-3 pb-2">
+            <div className="border-t border-border pt-2.5 pb-1">
               <CommentSection
                 postId={post.id}
                 initialComments={initialComments}
