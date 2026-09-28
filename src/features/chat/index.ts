@@ -11,6 +11,7 @@ export {
   unblockPeerById,
   getUnreadMessageCount,
 } from "./actions";
+export { getBlockStateForShelter } from "./block-state";
 export { startVerificationSupportChat } from "./support-actions";
 export { MessageComposer } from "./MessageComposer";
 export { StartChatButton } from "./StartChatButton";

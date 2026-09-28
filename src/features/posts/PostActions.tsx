@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AuthSheet } from "@/features/auth/components/AuthSheet";
 import type { AuthIntent } from "@/features/auth/intent";
-import { StartChatButton } from "@/features/chat";
+import { StartChatButton, UnblockPeerButton } from "@/features/chat";
 import { LikeButton, SaveButton, ShareButton } from "@/features/engagement";
 import { ReportButton } from "@/features/moderation";
 import type { PostStatus, Role } from "@/types/domain";
@@ -23,7 +23,8 @@ type Props = {
   shelterId?: string | null;
   /** Owning shelter profile id — hide contact on your own posts */
   shelterProfileId?: string | null;
-  /** Animal display name for chat intro context */
+  /** Current user has blocked this shelter */
+  blockedByMe?: boolean;
   animalName?: string;
   shareTitle: string;
   shareUrl: string;
@@ -41,6 +42,7 @@ export function PostActions({
   role,
   shelterId,
   shelterProfileId,
+  blockedByMe = false,
   animalName,
   shareTitle,
   shareUrl,
@@ -53,8 +55,7 @@ export function PostActions({
   const isOwnShelterPost =
     Boolean(userId) && Boolean(shelterProfileId) && userId === shelterProfileId;
 
-  // Adopters + other shelters can start chat; not on your own listing
-  const canStartChat = !isOwnShelterPost;
+  const canStartChat = !isOwnShelterPost && !blockedByMe;
   const contactLabel =
     role === "shelter"
       ? status === "available"
@@ -72,7 +73,13 @@ export function PostActions({
     <>
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start gap-3">
-          {shelterId && canStartChat ? (
+          {blockedByMe && shelterProfileId ? (
+            <UnblockPeerButton
+              peerId={shelterProfileId}
+              size="lg"
+              showLabel
+            />
+          ) : shelterId && canStartChat ? (
             <StartChatButton
               shelterId={shelterId}
               postId={postId}
