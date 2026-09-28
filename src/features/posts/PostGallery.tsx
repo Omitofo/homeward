@@ -47,7 +47,7 @@ export function PostGallery({ media, name }: Props) {
 
   return (
     <div
-      className="space-y-3 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:gap-2 lg:space-y-0 lg:p-3"
+      className="space-y-3 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:gap-2 lg:space-y-0 lg:p-2.5"
       role="group"
       aria-roledescription="carousel"
       aria-label={`${name} photos`}
@@ -61,7 +61,7 @@ export function PostGallery({ media, name }: Props) {
           src={current.url}
           alt={current.altText || `${name} photo ${index + 1}`}
           fill
-          sizes="(max-width: 1024px) 100vw, 40vw"
+          sizes="(max-width: 1024px) 100vw, 36vw"
           className="object-cover"
           priority={index === 0}
         />
@@ -75,25 +75,25 @@ export function PostGallery({ media, name }: Props) {
             <button
               type="button"
               onClick={() => go(-1)}
-              className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute left-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Previous photo"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={16} />
             </button>
             <button
               type="button"
               onClick={() => go(1)}
-              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
+              className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur hover:bg-background"
               aria-label="Next photo"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={16} />
             </button>
           </>
         )}
 
         {count > 1 && (
           <div
-            className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5"
+            className="absolute bottom-2.5 left-1/2 flex -translate-x-1/2 gap-1.5"
             role="tablist"
             aria-label="Photo pagination"
           >
@@ -103,8 +103,8 @@ export function PostGallery({ media, name }: Props) {
                 type="button"
                 onClick={() => setIndex(i)}
                 className={cn(
-                  "h-2.5 min-w-2.5 rounded-full transition-all",
-                  i === index ? "w-4 bg-primary" : "w-2.5 bg-background/70",
+                  "h-2 min-w-2 rounded-full transition-all",
+                  i === index ? "w-3.5 bg-primary" : "w-2 bg-background/70",
                 )}
                 aria-label={`Photo ${i + 1} of ${count}`}
                 aria-current={i === index ? "true" : undefined}
@@ -116,7 +116,7 @@ export function PostGallery({ media, name }: Props) {
 
       {count > 1 && (
         <div
-          className="flex gap-2 overflow-x-auto pb-1 lg:shrink-0 lg:pb-0"
+          className="flex gap-1.5 overflow-x-auto pb-1 lg:shrink-0 lg:pb-0"
           role="list"
         >
           {sorted.map((m, i) => (
@@ -125,7 +125,7 @@ export function PostGallery({ media, name }: Props) {
               type="button"
               onClick={() => setIndex(i)}
               className={cn(
-                "relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 transition-opacity sm:h-16 sm:w-16",
+                "relative h-12 w-12 shrink-0 overflow-hidden rounded-md border-2 transition-opacity sm:h-14 sm:w-14",
                 i === index
                   ? "border-primary opacity-100"
                   : "border-transparent opacity-70 hover:opacity-100",
@@ -137,7 +137,7 @@ export function PostGallery({ media, name }: Props) {
                 src={m.url}
                 alt=""
                 fill
-                sizes="64px"
+                sizes="56px"
                 className="object-cover"
               />
             </button>

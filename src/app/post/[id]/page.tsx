@@ -129,7 +129,7 @@ export default async function PostDetailPage({ params }: Props) {
     <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
       <AppHeader
         profile={profile}
-        maxWidthClassName="max-w-5xl"
+        maxWidthClassName="max-w-4xl"
         loginNext={`/post/${post.id}`}
         sticky={false}
         className="shrink-0"
@@ -137,9 +137,9 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-3 lg:overflow-hidden lg:py-4"
+        className="mx-auto flex w-full max-w-4xl min-h-0 flex-1 flex-col px-4 py-2.5 lg:overflow-hidden lg:py-3"
       >
-        <div className="mb-2 shrink-0 lg:mb-3">
+        <div className="mb-2 shrink-0 lg:mb-2.5">
           <IntentResume signedIn={signedIn} />
         </div>
 
@@ -149,7 +149,7 @@ export default async function PostDetailPage({ params }: Props) {
         */}
         <div
           className={
-            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm " +
+            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm " +
             "lg:grid-cols-2"
           }
         >
@@ -159,10 +159,10 @@ export default async function PostDetailPage({ params }: Props) {
           </div>
 
           {/* Right: independent scroll on desktop; themed scrollbar like filter sheet */}
-          <div className="sheet-scroll flex flex-col gap-5 overflow-y-auto p-5 sm:p-6 lg:min-h-0 lg:h-full">
+          <div className="sheet-scroll flex flex-col gap-4 overflow-y-auto p-4 sm:p-5 lg:min-h-0 lg:h-full">
             <Link
               href={`/shelter/${post.shelter.handle}`}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2.5"
             >
               <Avatar
                 name={post.shelter.orgName}
@@ -184,7 +184,7 @@ export default async function PostDetailPage({ params }: Props) {
               </div>
             </Link>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={statusVariant(post.status)} withDot>
                   {capitalize(post.status)}
@@ -194,7 +194,7 @@ export default async function PostDetailPage({ params }: Props) {
                 </span>
               </div>
 
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                 {post.name}
               </h1>
 
@@ -225,7 +225,7 @@ export default async function PostDetailPage({ params }: Props) {
               shareText={shareText}
             />
 
-            <div className="space-y-2 border-t border-border pt-4">
+            <div className="space-y-2 border-t border-border pt-3">
               <p className="leading-relaxed text-foreground">
                 <span className="font-semibold">{post.name}</span>{" "}
                 {post.description}
@@ -248,7 +248,7 @@ export default async function PostDetailPage({ params }: Props) {
               </p>
             </div>
 
-            <div className="border-t border-border pt-4 pb-2">
+            <div className="border-t border-border pt-3 pb-2">
               <CommentSection
                 postId={post.id}
                 initialComments={initialComments}
