@@ -7,9 +7,17 @@ import { unblockPeerById } from "./actions";
 
 type Props = {
   peerId: string;
+  /** larger control on post pages */
+  size?: "sm" | "lg";
+  /** show text label next to icon */
+  showLabel?: boolean;
 };
 
-export function UnblockPeerButton({ peerId }: Props) {
+export function UnblockPeerButton({
+  peerId,
+  size = "sm",
+  showLabel = false,
+}: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +44,22 @@ export function UnblockPeerButton({ peerId }: Props) {
       <Button
         type="button"
         variant="secondary"
-        size="sm"
+        size={size}
         disabled={busy}
         onClick={() => void onUnblock()}
+        title="Unblock user"
+        aria-label="Unblock user"
       >
-        {busy ? "…" : "Unblock"}
+        {busy ? (
+          "…"
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="text-base leading-none">
+              ⊘
+            </span>
+            {showLabel ? <span>Unblock</span> : null}
+          </span>
+        )}
       </Button>
       {error ? (
         <p className="text-xs text-danger" role="alert">

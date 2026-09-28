@@ -25,14 +25,14 @@ export function BlockConversationButton({
   if (peerIsAdmin) {
     return (
       <p className="max-w-[11rem] text-right text-xs text-muted">
-        Support chats cannot be blocked.
+        Support cannot be blocked
       </p>
     );
   }
 
   const onBlock = async () => {
     const confirmed = window.confirm(
-      "Block this person? They will not be able to message you (and you will not be able to message them) until you unblock. Chat history is kept for both of you.",
+      "Block this person? Neither of you can message until you unblock. History is kept.",
     );
     if (!confirmed) return;
 
@@ -72,7 +72,7 @@ export function BlockConversationButton({
   if (messagingBlocked && !blockedByMe) {
     return (
       <p className="max-w-[11rem] text-right text-xs text-muted">
-        Messaging is unavailable with this person.
+        Messaging unavailable
       </p>
     );
   }
@@ -85,9 +85,25 @@ export function BlockConversationButton({
         size="sm"
         disabled={busy}
         onClick={() => void (blockedByMe ? onUnblock() : onBlock())}
-        className={blockedByMe ? undefined : "text-danger hover:text-danger"}
+        title={blockedByMe ? "Unblock" : "Block user"}
+        aria-label={blockedByMe ? "Unblock user" : "Block user"}
+        className={
+          blockedByMe
+            ? "min-w-9 px-2"
+            : "min-w-9 px-2 text-danger hover:text-danger"
+        }
       >
-        {busy ? "…" : blockedByMe ? "Unblock" : "Block"}
+        {busy ? (
+          "…"
+        ) : blockedByMe ? (
+          <span aria-hidden className="text-base leading-none">
+            ⊘
+          </span>
+        ) : (
+          <span aria-hidden className="text-base leading-none">
+            🚫
+          </span>
+        )}
       </Button>
       {error ? (
         <p className="text-xs text-danger" role="alert">
