@@ -129,69 +129,63 @@ export default async function PostDetailPage({ params }: Props) {
       />
 
       <main id="main-content" className="mx-auto max-w-5xl px-4 py-6">
-        <div className="mb-6">
+        <div className="mb-4">
           <IntentResume signedIn={signedIn} />
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div className="lg:sticky lg:top-20 lg:self-start">
+        {/* Instagram-ish: media left / content right on desktop */}
+        <div className="grid gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid-cols-2">
+          <div className="bg-secondary lg:min-h-[32rem]">
             <PostGallery media={post.media} name={post.name} />
           </div>
 
-          <div className="flex flex-col gap-6">
-            <div className="space-y-3">
+          <div className="flex flex-col gap-5 p-5 sm:p-6">
+            {/* Header: shelter row like IG username */}
+            <Link
+              href={`/shelter/${post.shelter.handle}`}
+              className="flex items-center gap-3"
+            >
+              <Avatar
+                name={post.shelter.orgName}
+                size="sm"
+                src={post.shelter.avatarUrl}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-sm font-semibold">
+                    {post.shelter.orgName}
+                  </span>
+                  {post.shelter.verificationStatus === "verified" && (
+                    <VerifiedBadge />
+                  )}
+                </div>
+                <p className="truncate text-xs text-muted">
+                  {post.shelter.city}, {post.shelter.countryCode}
+                </p>
+              </div>
+            </Link>
+
+            <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={statusVariant(post.status)} withDot>
                   {capitalize(post.status)}
                 </Badge>
-                <span className="text-sm text-muted">
+                <span className="text-xs text-muted">
                   {capitalize(post.species)} · {capitalize(post.size)}
                 </span>
               </div>
 
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 {post.name}
               </h1>
 
-              <p className="text-muted">
+              <p className="text-sm text-muted">
                 {post.breed} · {ageLabel(post.ageMonths, post.ageGroup)} ·{" "}
                 {capitalize(post.sex)}
               </p>
-
               <p className="text-sm text-muted">
                 {post.city}, {post.region} · {post.countryCode}
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                About
-              </h2>
-              <p className="leading-relaxed text-foreground">{post.description}</p>
-            </div>
-
-            {post.traits.length > 0 && (
-              <div className="space-y-2">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                  Traits
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {post.traits.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
-                    >
-                      {t.replace(/-/g, " ")}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-6 text-sm text-muted">
-              <span>{post.likeCount} likes</span>
-              <span>{post.commentCount} comments</span>
-              <span>Listed {formatListedDate(post.createdAt)}</span>
             </div>
 
             <PostActions
@@ -212,38 +206,37 @@ export default async function PostDetailPage({ params }: Props) {
               shareText={shareText}
             />
 
-            <Link
-              href={`/shelter/${post.shelter.handle}`}
-              className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-md"
-            >
-              <Avatar
-                name={post.shelter.orgName}
-                size="md"
-                src={post.shelter.avatarUrl}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground group-hover:underline">
-                    {post.shelter.orgName}
-                  </span>
-                  {post.shelter.verificationStatus === "verified" && (
-                    <VerifiedBadge />
-                  )}
+            <div className="space-y-2 border-t border-border pt-4">
+              <p className="leading-relaxed text-foreground">
+                <span className="font-semibold">{post.name}</span>{" "}
+                {post.description}
+              </p>
+              {post.traits.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {post.traits.map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground"
+                    >
+                      {t.replace(/-/g, " ")}
+                    </span>
+                  ))}
                 </div>
-                <p className="text-sm text-muted">
-                  {post.shelter.city}, {post.shelter.countryCode}
-                </p>
-              </div>
-              <span className="text-sm text-muted group-hover:text-foreground">
-                View →
-              </span>
-            </Link>
+              ) : null}
+              <p className="text-xs text-muted">
+                Listed {formatListedDate(post.createdAt)} · {post.commentCount}{" "}
+                comments
+              </p>
+            </div>
 
-            <div className="border-t border-border pt-6">
+            <div className="border-t border-border pt-4">
               <CommentSection
                 postId={post.id}
                 initialComments={initialComments}
-                initialCount={Math.max(post.commentCount, initialComments.length)}
+                initialCount={Math.max(
+                  post.commentCount,
+                  initialComments.length,
+                )}
                 signedIn={signedIn}
                 userId={profile?.id}
                 displayName={profile?.displayName}

@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { Archive } from "@/components/icons";
 import { archiveConversation } from "./actions";
 
 type Props = {
   conversationId: string;
 };
 
-/** Archive = hide from my inbox only (icon + tooltip). */
 export function HideConversationButton({ conversationId }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -43,19 +43,16 @@ export function HideConversationButton({ conversationId }: Props) {
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="icon"
         disabled={busy}
         onClick={() => void onArchive()}
         title="Archive chat"
         aria-label="Archive chat"
-        className="min-w-9 px-2"
       >
         {busy ? (
-          "…"
+          <span className="text-xs">…</span>
         ) : (
-          <span aria-hidden className="text-base leading-none">
-            ⬇
-          </span>
+          <Archive size={20} />
         )}
       </Button>
       {error ? (

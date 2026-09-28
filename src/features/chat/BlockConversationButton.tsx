@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { Ban, Unlock } from "@/components/icons";
 import { blockPeer, unblockPeer } from "./actions";
 
 type Props = {
@@ -82,27 +83,19 @@ export function BlockConversationButton({
       <Button
         type="button"
         variant={blockedByMe ? "secondary" : "ghost"}
-        size="sm"
+        size="icon"
         disabled={busy}
         onClick={() => void (blockedByMe ? onUnblock() : onBlock())}
         title={blockedByMe ? "Unblock" : "Block user"}
         aria-label={blockedByMe ? "Unblock user" : "Block user"}
-        className={
-          blockedByMe
-            ? "min-w-9 px-2"
-            : "min-w-9 px-2 text-danger hover:text-danger"
-        }
+        className={blockedByMe ? undefined : "text-danger hover:text-danger"}
       >
         {busy ? (
-          "…"
+          <span className="text-xs">…</span>
         ) : blockedByMe ? (
-          <span aria-hidden className="text-base leading-none">
-            ⊘
-          </span>
+          <Unlock size={20} />
         ) : (
-          <span aria-hidden className="text-base leading-none">
-            🚫
-          </span>
+          <Ban size={20} />
         )}
       </Button>
       {error ? (
