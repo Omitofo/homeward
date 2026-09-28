@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { IconProps } from "./types";
 
 /** Shared 24×24 outline icon shell (Lucide-compatible stroke). */
@@ -7,7 +8,7 @@ export function IconBase({
   children,
   className,
   ...props
-}: IconProps & { children: React.ReactNode }) {
+}: IconProps & { children: ReactNode }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
