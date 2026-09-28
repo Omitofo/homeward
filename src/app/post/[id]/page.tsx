@@ -145,7 +145,8 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/*
           Mobile: single column, natural page scroll.
-          Desktop: flex-1 split — left media locked, right column scrolls alone.
+          Desktop: flex-1 split — left media top-aligned (fixed height),
+          right column scrolls alone.
         */}
         <div
           className={
@@ -153,7 +154,7 @@ export default async function PostDetailPage({ params }: Props) {
             "lg:grid-cols-2"
           }
         >
-          {/* Left: fills column height on desktop */}
+          {/* Left: top-aligned gallery; secondary fill below image on tall screens */}
           <div className="bg-secondary lg:min-h-0 lg:h-full lg:overflow-hidden lg:border-r lg:border-border">
             <PostGallery media={post.media} name={post.name} />
           </div>
