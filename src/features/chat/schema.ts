@@ -25,6 +25,12 @@ export const blockPeerSchema = z.object({
   conversationId: z.string().min(1),
 });
 
+export const unblockPeerIdSchema = z.object({
+  peerId: z.string().uuid(),
+});
+
+export type MessagesTab = "inbox" | "archived" | "blocked";
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
@@ -34,7 +40,6 @@ export type ChatMessage = {
   readAt: string | null;
 };
 
-/** Compact post summary for chat context cards */
 export type ChatPostCard = {
   id: string;
   name: string;
@@ -44,7 +49,7 @@ export type ChatPostCard = {
   imageAlt: string;
 };
 
-/** @deprecated mutual close removed — kept for type compatibility during transition */
+/** @deprecated mutual close removed */
 export type ConversationStatus = "open" | "closed";
 
 export type ConversationSummary = {
@@ -58,13 +63,19 @@ export type ConversationSummary = {
   peerName: string;
   lastMessagePreview: string | null;
   unreadCount: number;
-  /** True when current user has blocked the peer */
   blockedByMe?: boolean;
+  archived?: boolean;
 };
 
-/** Machine marker embedded in message body so we can show a card without a schema migration */
+/** Row for the Blocked tab — always unblocks without needing the thread in inbox */
+export type BlockedPeerSummary = {
+  peerId: string;
+  peerName: string;
+  blockedAt: string;
+  conversationId: string | null;
+};
+
 export const POST_MARKER_RE = /⟦post:([0-9a-fA-F-]{8,})⟧/g;
-/** Legacy intro format: (/post/uuid) */
 export const POST_PATH_RE = /\(\/post\/([0-9a-fA-F-]{8,})\)/g;
 export const POST_PATH_BARE_RE = /\/post\/([0-9a-fA-F-]{8,})/g;
 
@@ -80,7 +91,6 @@ export function extractPostIdsFromBody(body: string): string[] {
   return [...ids];
 }
 
-/** Text shown in the bubble — strip markers and raw paths so the card carries the link */
 export function displayMessageBody(body: string): string {
   return body
     .replace(POST_MARKER_RE, "")
