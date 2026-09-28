@@ -133,14 +133,16 @@ export default async function PostDetailPage({ params }: Props) {
           <IntentResume signedIn={signedIn} />
         </div>
 
-        {/* Instagram-ish: media left / content right on desktop */}
-        <div className="grid gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid-cols-2">
-          <div className="bg-secondary lg:min-h-[32rem]">
+        {/*
+          Desktop: two columns with equal height from the taller side.
+          Left media is sticky so it stays put while the right column scrolls.
+        */}
+        <div className="grid items-start gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:grid-cols-2">
+          <div className="bg-secondary lg:sticky lg:top-20 lg:self-start">
             <PostGallery media={post.media} name={post.name} />
           </div>
 
           <div className="flex flex-col gap-5 p-5 sm:p-6">
-            {/* Header: shelter row like IG username */}
             <Link
               href={`/shelter/${post.shelter.handle}`}
               className="flex items-center gap-3"
