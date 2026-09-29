@@ -5,6 +5,7 @@ import { postsRepository } from "@/features/posts";
 import { Avatar, Badge, VerifiedBadge } from "@/components/ui";
 import { PostGallery } from "@/features/posts/PostGallery";
 import { PostActions } from "@/features/posts/PostActions";
+import { LockPostScroll } from "@/features/posts/LockPostScroll";
 import { getCurrentProfile, IntentResume } from "@/features/auth";
 import {
   getLikedByMe,
@@ -122,14 +123,15 @@ export default async function PostDetailPage({ params }: Props) {
 
   return (
     /*
-      Mobile: natural page height + document scroll.
-      Desktop: lock to viewport height so only the right column scrolls
-      (no grey page scrollbar under the split container).
+      Mobile: natural document scroll.
+      Desktop: page locked; card capped at ~80dvh and vertically centered
+      under the header so it cannot force page overflow.
     */
     <div className="flex min-h-full flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
+      <LockPostScroll />
       <AppHeader
         profile={profile}
-        maxWidthClassName="max-w-5xl"
+        maxWidthClassName="max-w-3xl"
         loginNext={`/post/${post.id}`}
         sticky={false}
         className="shrink-0"
@@ -137,34 +139,30 @@ export default async function PostDetailPage({ params }: Props) {
 
       <main
         id="main-content"
-        className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-4 lg:py-6"
+        className="mx-auto flex w-full max-w-3xl min-h-0 flex-1 flex-col justify-center overflow-hidden px-3 py-3"
       >
-        <div className="mb-3 shrink-0 lg:mb-4">
+        <div className="mb-1.5 shrink-0">
           <IntentResume signedIn={signedIn} />
         </div>
 
         {/*
-          Mobile: single column, natural page scroll.
-          Desktop: flex-1 split — left media locked, right column scrolls alone.
+          Desktop: max ~80% of viewport height so the card sits comfortably
+          inside the shell with clear margin above/below.
         */}
         <div
           className={
-            "grid min-h-0 flex-1 gap-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm " +
-            "lg:grid-cols-2"
+            "grid min-h-0 w-full gap-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm " +
+            "lg:max-h-[80dvh] lg:grid-cols-2 lg:grid-rows-1"
           }
         >
-          {/* Left: no extra empty space; fills column height on desktop */}
-          <div className="bg-secondary lg:h-full lg:min-h-0 lg:overflow-hidden lg:border-r lg:border-border">
-            <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
-              <PostGallery media={post.media} name={post.name} />
-            </div>
+          <div className="min-h-0 overflow-hidden bg-secondary lg:border-r lg:border-border">
+            <PostGallery media={post.media} name={post.name} />
           </div>
 
-          {/* Right: independent scroll on desktop; themed scrollbar like filter sheet */}
-          <div className="sheet-scroll flex flex-col gap-5 overflow-y-auto p-5 sm:p-6 lg:min-h-0 lg:h-full">
+          <div className="sheet-scroll flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-3 sm:p-4 lg:max-h-[80dvh]">
             <Link
               href={`/shelter/${post.shelter.handle}`}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2"
             >
               <Avatar
                 name={post.shelter.orgName}
@@ -172,39 +170,39 @@ export default async function PostDetailPage({ params }: Props) {
                 src={post.shelter.avatarUrl}
               />
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold">
+                <div className="flex items-center gap-1">
+                  <span className="truncate text-xs font-semibold">
                     {post.shelter.orgName}
                   </span>
                   {post.shelter.verificationStatus === "verified" && (
                     <VerifiedBadge />
                   )}
                 </div>
-                <p className="truncate text-xs text-muted">
+                <p className="truncate text-[11px] text-muted">
                   {post.shelter.city}, {post.shelter.countryCode}
                 </p>
               </div>
             </Link>
 
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <Badge variant={statusVariant(post.status)} withDot>
                   {capitalize(post.status)}
                 </Badge>
-                <span className="text-xs text-muted">
+                <span className="text-[11px] text-muted">
                   {capitalize(post.species)} · {capitalize(post.size)}
                 </span>
               </div>
 
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
                 {post.name}
               </h1>
 
-              <p className="text-sm text-muted">
+              <p className="text-xs text-muted">
                 {post.breed} · {ageLabel(post.ageMonths, post.ageGroup)} ·{" "}
                 {capitalize(post.sex)}
               </p>
-              <p className="text-sm text-muted">
+              <p className="text-xs text-muted">
                 {post.city}, {post.region} · {post.countryCode}
               </p>
             </div>
@@ -227,30 +225,30 @@ export default async function PostDetailPage({ params }: Props) {
               shareText={shareText}
             />
 
-            <div className="space-y-2 border-t border-border pt-4">
-              <p className="leading-relaxed text-foreground">
+            <div className="space-y-1.5 border-t border-border pt-2.5">
+              <p className="text-sm leading-relaxed text-foreground">
                 <span className="font-semibold">{post.name}</span>{" "}
                 {post.description}
               </p>
               {post.traits.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1 pt-0.5">
                   {post.traits.map((t) => (
                     <span
                       key={t}
-                      className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground"
+                      className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground"
                     >
                       {t.replace(/-/g, " ")}
                     </span>
                   ))}
                 </div>
               ) : null}
-              <p className="text-xs text-muted">
+              <p className="text-[11px] text-muted">
                 Listed {formatListedDate(post.createdAt)} · {post.commentCount}{" "}
                 comments
               </p>
             </div>
 
-            <div className="border-t border-border pt-4 pb-2">
+            <div className="border-t border-border pt-2.5 pb-1">
               <CommentSection
                 postId={post.id}
                 initialComments={initialComments}

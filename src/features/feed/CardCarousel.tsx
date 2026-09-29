@@ -4,6 +4,7 @@ import { useCallback, useId, useState } from "react";
 import Image from "next/image";
 import type { PostMedia } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
+import { ChevronLeft, ChevronRight } from "@/components/icons";
 
 type Props = {
   media: PostMedia[];
@@ -84,25 +85,20 @@ export function CardCarousel({
           <button
             type="button"
             onClick={(e) => go(-1, e)}
-            className="absolute left-1.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100"
+            className="absolute left-1.5 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100"
             aria-label="Previous photo"
             aria-controls={statusId}
           >
-            {/* Glyph metrics sit slightly low; nudge up for optical center */}
-            <span aria-hidden className="block translate-y-[-0.5px] text-lg leading-none">
-              ‹
-            </span>
+            <ChevronLeft size={16} />
           </button>
           <button
             type="button"
             onClick={(e) => go(1, e)}
-            className="absolute right-1.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100"
+            className="absolute right-1.5 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus-visible:opacity-100"
             aria-label="Next photo"
             aria-controls={statusId}
           >
-            <span aria-hidden className="block translate-y-[-0.5px] text-lg leading-none">
-              ›
-            </span>
+            <ChevronRight size={16} />
           </button>
 
           <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1.5" role="tablist" aria-label="Photo pagination">
@@ -112,8 +108,8 @@ export function CardCarousel({
                 type="button"
                 onClick={(e) => jump(i, e)}
                 className={cn(
-                  "h-2.5 min-w-2.5 rounded-full transition-all",
-                  i === index ? "w-4 bg-primary" : "w-2.5 bg-background/80",
+                  "h-2 min-w-2 rounded-full transition-all",
+                  i === index ? "w-3.5 bg-primary" : "w-2 bg-background/80",
                 )}
                 aria-label={"Photo " + (i + 1) + " of " + count}
                 aria-current={i === index ? "true" : undefined}
