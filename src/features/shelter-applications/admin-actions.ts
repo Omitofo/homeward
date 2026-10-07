@@ -46,7 +46,7 @@ export async function listPendingShelterApplications(): Promise<
   ActionResult<AdminShelterApplicationRow[]>
 > {
   const gate = await requireAdmin();
-  if ("error" in gate) return { ok: false, error: gate.error };
+  if ("error" in gate) return { ok: false, error: gate.error ?? "Unauthorized" };
 
   if (useMock) {
     return {
@@ -98,7 +98,7 @@ export async function reviewShelterApplication(
   raw: unknown,
 ): Promise<ActionResult<{ id: string }>> {
   const gate = await requireAdmin();
-  if ("error" in gate) return { ok: false, error: gate.error };
+  if ("error" in gate) return { ok: false, error: gate.error ?? "Unauthorized" };
 
   const parsed = reviewSchema.safeParse(raw);
   if (!parsed.success) {

@@ -69,7 +69,7 @@ export async function createAnimalPost(
   raw: unknown,
 ): Promise<ActionResult<{ id: string }>> {
   const gate = await requireOwnerShelter();
-  if ("error" in gate) return { ok: false, error: gate.error };
+  if ("error" in gate) return { ok: false, error: gate.error ?? "Unauthorized" };
 
   const parsed = postComposerSchema.safeParse(raw);
   if (!parsed.success) {
@@ -170,7 +170,7 @@ export async function updateAnimalPost(
   raw: unknown,
 ): Promise<ActionResult<{ id: string }>> {
   const gate = await requireOwnerShelter();
-  if ("error" in gate) return { ok: false, error: gate.error };
+  if ("error" in gate) return { ok: false, error: gate.error ?? "Unauthorized" };
 
   const parsed = postComposerSchema.safeParse(raw);
   if (!parsed.success) {
